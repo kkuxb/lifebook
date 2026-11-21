@@ -1,0 +1,3658 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light" data-device="desktop">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>人生簿 · 交互原型</title>
+<style>
+:root{
+  --bg:#F6F7FA;
+  --surface:#FFFFFF;
+  --surface-2:#F2F3F7;
+  --surface-hover:#F5F6FA;
+  --paper:#FCFBF8;
+  --paper-border:#ECE7DC;
+  --border:#E8EAF1;
+  --border-strong:#D5D9E4;
+  --line:#EEF0F5;
+  --ink:#111827;
+  --ink-2:#4B5263;
+  --ink-3:#6B7280;
+  --ink-4:#9CA3AF;
+  --accent:#FFD43B;
+  --accent-hover:#FFCC1A;
+  --accent-ink:#111827;
+  --accent-soft:#FFF7D1;
+  --dark-btn:#111827;
+  --dark-btn-ink:#FFFFFF;
+  --dark-btn-hover:#000000;
+  --ok-bg:#ECFDF3;
+  --ok-line:#B7E4C7;
+  --ok-ink:#146C43;
+  --ok-dot:#10B981;
+  --warn-bg:#FFF7F1;
+  --warn-line:#FFB38A;
+  --warn-ink:#9A3A0A;
+  --warn-dot:#F97316;
+  --danger:#E11D48;
+  --danger-ink:#C8203E;
+  --danger-bg:#FFF1F2;
+  --shadow-sm:0 1px 2px rgba(17,24,39,.04),0 10px 24px -16px rgba(17,24,39,.16);
+  --shadow-lg:0 4px 10px rgba(17,24,39,.06),0 22px 42px -18px rgba(17,24,39,.24);
+  --shadow-btn:inset 0 1px 0 rgba(255,255,255,.55),0 8px 18px -10px rgba(214,160,0,.9);
+  --mark-bg:rgba(255,212,59,.55);
+  --heat-0:#EBEEF5;
+  --heat-1:#CBE4FA;
+  --heat-2:#7CC0F5;
+  --heat-3:#FBBF24;
+  --heat-4:#EA580C;
+  --ai-bg:#FFF7D1;
+  --ai-ink:#9A5800;
+  --ai-border:#F3DDA0;
+  --code-bg:#F3F4F6;
+  --quote-bg:#F7F4EC;
+  --header-blur:rgba(246,247,250,.88);
+  --font-sans:"PingFang SC","Hiragino Sans GB","Microsoft YaHei UI","Microsoft YaHei","Noto Sans SC",system-ui,-apple-system,sans-serif;
+  --font-mono:"Cascadia Mono","Consolas","PingFang SC",monospace;
+}
+html[data-theme="dark"]{
+  --bg:#111318;
+  --surface:#191D26;
+  --surface-2:#222734;
+  --surface-hover:#242A38;
+  --paper:#1D212B;
+  --paper-border:#2C3242;
+  --border:#262B38;
+  --border-strong:#353C4E;
+  --line:#252B38;
+  --ink:#ECEFF6;
+  --ink-2:#B5BDCE;
+  --ink-3:#8A94A8;
+  --ink-4:#667085;
+  --accent:#F5C83B;
+  --accent-hover:#FFD43B;
+  --accent-ink:#111827;
+  --accent-soft:rgba(245,200,59,.18);
+  --dark-btn:#ECEFF6;
+  --dark-btn-ink:#111827;
+  --dark-btn-hover:#FFFFFF;
+  --ok-bg:#14261D;
+  --ok-line:#24533B;
+  --ok-ink:#6EE7B7;
+  --ok-dot:#34D399;
+  --warn-bg:#2A1C16;
+  --warn-line:#6A3D28;
+  --warn-ink:#FDBA8C;
+  --warn-dot:#FB923C;
+  --danger:#FB7185;
+  --danger-ink:#FDA4AF;
+  --danger-bg:#331820;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.35),0 10px 24px -16px rgba(0,0,0,.55);
+  --shadow-lg:0 6px 14px rgba(0,0,0,.45),0 24px 44px -18px rgba(0,0,0,.7);
+  --shadow-btn:inset 0 1px 0 rgba(255,255,255,.35),0 8px 18px -10px rgba(245,200,59,.45);
+  --mark-bg:rgba(245,200,59,.35);
+  --heat-0:#202532;
+  --heat-1:#1E3A5F;
+  --heat-2:#2B6CB0;
+  --heat-3:#D99B16;
+  --heat-4:#F97316;
+  --ai-bg:rgba(245,200,59,.16);
+  --ai-ink:#FCD34D;
+  --ai-border:rgba(245,200,59,.34);
+  --code-bg:#141821;
+  --quote-bg:#232836;
+  --header-blur:rgba(17,19,24,.88);
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:var(--font-sans);-webkit-font-smoothing:antialiased;transition:background-color .25s ease,color .25s ease}
+button,input,textarea,select{font-family:inherit;color:inherit}
+button{cursor:pointer}
+.num{font-variant-numeric:tabular-nums}
+.hidden{display:none!important}
+
+/* 外壳：支持桌面宽屏与手机居中画框预览 */
+.device-stage{min-height:100vh;display:flex;flex-direction:column;align-items:center}
+.app-frame{width:100%;min-height:100vh;display:flex;flex-direction:column;background:var(--bg);transition:width .3s cubic-bezier(.2,.8,.2,1),border-radius .3s,box-shadow .3s}
+html[data-device="mobile"] .device-stage{padding:20px 12px 32px;background:repeating-radial-gradient(circle at 20% 20%,rgba(125,135,160,.07) 0 1px,transparent 1px 22px),var(--bg)}
+html[data-device="mobile"] .app-frame{width:396px;max-width:100%;min-height:812px;max-height:860px;overflow-y:auto;overflow-x:hidden;border-radius:34px;border:8px solid #1E2430;box-shadow:0 24px 60px rgba(0,0,0,.28);position:relative}
+html[data-theme="dark"][data-device="mobile"] .app-frame{border-color:#2E3546}
+
+/* 顶部吸顶栏 */
+.topbar-wrap{position:sticky;top:0;z-index:40;background:var(--header-blur);backdrop-filter:blur(12px);border-bottom:1px solid transparent;transition:border-color .2s,background-color .25s}
+.topbar-wrap.scrolled{border-bottom-color:var(--border)}
+.topbar{max-width:1280px;margin:0 auto;padding:14px 36px;display:flex;align-items:center;justify-content:space-between;gap:14px}
+html[data-device="mobile"] .topbar{padding:12px 16px;gap:8px}
+.brand{display:flex;align-items:center;gap:10px;border:0;background:transparent;padding:0;text-align:left}
+.brand-logo{width:38px;height:38px;border-radius:12px;background:var(--accent);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-btn);flex:none;transition:transform .2s}
+.brand:hover .brand-logo{transform:translateY(-1px) rotate(-3deg)}
+.brand-name{font-size:19px;font-weight:800;letter-spacing:-.01em}
+.brand-sub{font-size:11px;font-weight:700;color:var(--ink-3);margin-top:1px}
+html[data-device="mobile"] .brand-sub{display:none}
+
+.nav-pills{display:flex;align-items:center;gap:3px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:4px;box-shadow:var(--shadow-sm)}
+html[data-device="mobile"] .nav-pills.desktop-nav{display:none}
+.nav-pill{border:0;background:transparent;color:var(--ink-2);height:38px;padding:0 18px;border-radius:10px;font-size:14px;font-weight:800;transition:all .2s;white-space:nowrap}
+.nav-pill:hover{color:var(--ink);background:var(--surface-hover)}
+.nav-pill.active{background:var(--dark-btn);color:var(--dark-btn-ink)}
+
+.top-actions{display:flex;align-items:center;gap:8px}
+.seg-mini{display:inline-flex;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:3px;gap:2px}
+.seg-mini button{border:0;background:transparent;color:var(--ink-3);height:30px;padding:0 10px;border-radius:9px;font-size:12px;font-weight:700;transition:all .18s}
+.seg-mini button.active{background:var(--surface-2);color:var(--ink)}
+html[data-device="mobile"] .hide-mobile{display:none!important}
+
+.icon-btn{width:38px;height:38px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--ink-2);display:inline-flex;align-items:center;justify-content:center;transition:all .2s}
+.icon-btn:hover{transform:translateY(-2px);color:var(--ink);border-color:var(--border-strong)}
+.icon-btn:active{transform:scale(.96)}
+
+.sync-pill{height:36px;padding:0 12px;border-radius:999px;border:1px solid var(--ok-line);background:var(--ok-bg);color:var(--ok-ink);font-size:12px;font-weight:800;display:inline-flex;align-items:center;gap:7px;white-space:nowrap;transition:all .2s}
+.sync-pill.syncing{border-color:var(--border-strong);background:var(--surface);color:var(--ink-2)}
+.sync-pill.offline{border-color:var(--warn-line);background:var(--warn-bg);color:var(--warn-ink)}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:currentColor;flex:none}
+.sync-pill.ok .sync-dot{color:var(--ok-dot);animation:ping 2s ease-out infinite}
+.sync-pill.offline .sync-dot{color:var(--warn-dot)}
+html[data-device="mobile"] .sync-text-full{display:none}
+
+/* 手机端底部四栏导航 */
+.mobile-bottom-nav{display:none}
+html[data-device="mobile"] .mobile-bottom-nav{display:grid;grid-template-columns:repeat(4,1fr);position:sticky;bottom:0;z-index:40;background:var(--surface);border-top:1px solid var(--border);padding:6px 8px 10px;margin-top:auto}
+.mnav-btn{border:0;background:transparent;color:var(--ink-3);display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 4px;border-radius:12px;font-size:11px;font-weight:800}
+.mnav-btn.active{color:var(--ink);background:var(--surface-2)}
+
+/* 通用表面与按钮 */
+.main-wrap{flex:1;width:100%;max-width:1280px;margin:0 auto;padding:24px 36px 72px}
+html[data-device="mobile"] .main-wrap{padding:16px 16px 28px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:20px;box-shadow:var(--shadow-sm);transition:transform .25s cubic-bezier(.2,.8,.2,1),box-shadow .25s,border-color .25s,background-color .25s}
+.lift:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg)}
+.paper-card{background:var(--paper);border:1px solid var(--paper-border);border-radius:20px;box-shadow:var(--shadow-sm)}
+
+.btn{border:0;display:inline-flex;align-items:center;justify-content:center;gap:7px;font-weight:800;white-space:nowrap;border-radius:12px;transition:transform .2s cubic-bezier(.2,.8,.2,1),box-shadow .2s,background-color .2s,color .2s}
+.btn:hover{transform:translateY(-2px)}
+.btn:active{transform:translateY(0) scale(.97)}
+.btn-primary{background:var(--accent);color:var(--accent-ink);box-shadow:var(--shadow-btn);height:48px;padding:0 24px;font-size:15px;border-radius:14px}
+.btn-primary:hover{background:var(--accent-hover)}
+.btn-dark{background:var(--dark-btn);color:var(--dark-btn-ink);height:40px;padding:0 16px;font-size:13px}
+.btn-dark:hover{background:var(--dark-btn-hover)}
+.btn-soft{background:var(--surface-2);color:var(--ink);height:38px;padding:0 14px;font-size:13px}
+.btn-soft:hover{background:var(--surface-hover);box-shadow:inset 0 0 0 1px var(--border-strong)}
+.btn-ghost{background:var(--surface);color:var(--ink);border:1px solid var(--border);height:38px;padding:0 14px;font-size:13px}
+.btn-ghost:hover{border-color:var(--border-strong)}
+.btn-danger-soft{background:var(--danger-bg);color:var(--danger-ink);height:36px;padding:0 12px;font-size:12px;border:1px solid transparent}
+
+.chip{display:inline-flex;align-items:center;gap:6px;height:27px;padding:0 11px;border-radius:999px;font-size:12px;font-weight:800;white-space:nowrap}
+.badge-count{display:inline-flex;align-items:center;height:24px;padding:0 9px;border-radius:999px;background:var(--surface-2);color:var(--ink-2);font-size:12px;font-weight:800}
+
+/* 首页样式 */
+.hero-row{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:28px}
+.hero-title{margin:0;font-size:40px;line-height:1.12;font-weight:900;letter-spacing:-.02em}
+html[data-device="mobile"] .hero-title{font-size:30px}
+.hl-date{background:linear-gradient(transparent 62%,var(--accent) 62%,var(--accent) 92%,transparent 92%);padding:0 4px}
+.hero-sub{margin:10px 0 0;font-size:14px;font-weight:600;color:var(--ink-3);display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.hero-btns{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+html[data-device="mobile"] .hero-btns{width:100%}
+html[data-device="mobile"] .hero-btns .btn-primary{flex:1}
+
+.sec-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+.sec-title{margin:0;font-size:20px;font-weight:800;display:flex;align-items:center;gap:9px}
+
+.otd-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px;margin-bottom:28px}
+.otd-card{padding:18px 20px;display:flex;flex-direction:column;gap:10px;cursor:pointer;text-align:left;width:100%;border:1px solid var(--border)}
+.otd-year{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:800;color:var(--ink-2);background:var(--surface-2);padding:4px 10px;border-radius:999px}
+.otd-excerpt{font-size:13px;line-height:1.65;color:var(--ink-2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin:0}
+
+/* 热力图 */
+.heat-card{padding:22px 24px;margin-bottom:28px}
+html[data-device="mobile"] .heat-card{padding:16px}
+.kpi-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0 18px}
+html[data-device="mobile"] .kpi-strip{grid-template-columns:repeat(2,1fr)}
+.kpi-mini{background:var(--surface-hover);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.kpi-mini .k-label{font-size:12px;font-weight:700;color:var(--ink-3)}
+.kpi-mini .k-val{font-size:24px;font-weight:900;margin-top:4px;letter-spacing:-.02em}
+.heat-scroll{overflow-x:auto;padding-bottom:6px}
+.heat-grid{display:grid;grid-template-columns:repeat(53,13px);grid-template-rows:repeat(7,13px);grid-auto-flow:column;gap:4px;min-width:860px}
+.h-cell{width:13px;height:13px;border-radius:3.5px;background:var(--heat-0);border:0;padding:0;transition:transform .14s,outline .14s}
+.h-cell:hover{transform:scale(1.35);outline:2px solid var(--ink);outline-offset:1px;z-index:2}
+.h-cell.empty-pad{background:transparent;pointer-events:none}
+.heat-legend{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:12px;font-size:12px;color:var(--ink-3);font-weight:600}
+.legend-boxes{display:inline-flex;align-items:center;gap:4px}
+.legend-boxes i{display:inline-block;width:12px;height:12px;border-radius:3px}
+
+/* 标签墙 */
+.tags-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:12px}
+html[data-device="mobile"] .tags-grid{grid-template-columns:1fr 1fr;gap:10px}
+.tag-wall-card{padding:16px;display:flex;flex-direction:column;gap:12px;cursor:pointer}
+.tag-wall-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.tag-wall-foot{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.tag-quick-btn{border:1px solid var(--border);background:var(--surface-2);color:var(--ink-2);height:28px;padding:0 10px;border-radius:8px;font-size:12px;font-weight:800;transition:all .16s}
+.tag-quick-btn:hover{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+
+/* 沉浸式写作页 */
+.editor-shell{display:flex;gap:22px;align-items:flex-start;justify-content:center}
+.editor-main-col{flex:1;max-width:780px;width:100%;min-width:0}
+.editor-toolbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+.save-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--ink-3);background:var(--surface);border:1px solid var(--border);height:32px;padding:0 12px;border-radius:999px}
+.paper-canvas{padding:36px 44px 54px;position:relative}
+html[data-device="mobile"] .paper-canvas{padding:20px 18px 36px;border-radius:18px}
+.paper-meta-top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+.date-input-pill{display:inline-flex;align-items:center;gap:6px;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:4px 10px;font-size:13px;font-weight:700}
+.date-input-pill input{border:0;background:transparent;font-size:13px;font-weight:800;outline:none}
+.doc-title-input{width:100%;border:0;background:transparent;font-size:28px;font-weight:900;line-height:1.3;outline:none;padding:4px 0;margin-bottom:12px;letter-spacing:-.01em}
+html[data-device="mobile"] .doc-title-input{font-size:22px}
+.doc-title-input::placeholder{color:var(--ink-4)}
+
+.meta-chips-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding-bottom:18px;margin-bottom:20px;border-bottom:1px solid var(--paper-border);position:relative}
+.add-meta-btn{border:1px dashed var(--border-strong);background:transparent;color:var(--ink-3);height:27px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:800;display:inline-flex;align-items:center;gap:4px;transition:all .16s}
+.add-meta-btn:hover{border-color:var(--ink);color:var(--ink);background:var(--surface-2)}
+
+.popover-panel{position:absolute;top:calc(100% - 8px);left:0;z-index:35;background:var(--surface);border:1px solid var(--border-strong);border-radius:16px;padding:14px;box-shadow:var(--shadow-lg);width:320px;max-width:90vw}
+.popover-grid{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.pick-opt{border:1px solid var(--border);background:var(--surface-2);color:var(--ink-2);padding:5px 10px;border-radius:999px;font-size:12px;font-weight:700;transition:all .15s}
+.pick-opt.selected{background:var(--dark-btn);color:var(--dark-btn-ink);border-color:transparent}
+
+/* 块级编辑器正文 */
+.editor-blocks{min-height:360px;outline:none;font-size:16px;line-height:1.85;color:var(--ink)}
+.editor-blocks h2{font-size:22px;font-weight:800;margin:22px 0 10px;line-height:1.35}
+.editor-blocks h3{font-size:17.5px;font-weight:800;margin:20px 0 8px;padding-left:10px;border-left:3.5px solid var(--accent);line-height:1.4}
+.editor-blocks p{margin:0 0 10px}
+.editor-blocks ul,.editor-blocks ol{margin:4px 0 12px;padding-left:22px}
+.editor-blocks li{margin:4px 0}
+.editor-blocks blockquote{margin:12px 0;padding:10px 14px;border-left:3.5px solid var(--border-strong);background:var(--quote-bg);border-radius:0 12px 12px 0;color:var(--ink-2)}
+.editor-blocks pre{margin:12px 0;padding:12px 14px;background:var(--code-bg);border:1px solid var(--border);border-radius:12px;font-family:var(--font-mono);font-size:13.5px;line-height:1.6;overflow-x:auto}
+.editor-blocks hr{border:0;border-top:1.5px dashed var(--border-strong);margin:20px 0}
+.editor-blocks mark{background:var(--mark-bg);color:inherit;padding:1px 3px;border-radius:4px}
+.todo-block{display:flex;align-items:flex-start;gap:9px;margin:6px 0}
+.todo-block input[type="checkbox"]{width:17px;height:17px;margin-top:6px;accent-color:var(--accent-ink);cursor:pointer;flex:none}
+.todo-block .todo-text{flex:1;outline:none}
+.todo-block.done .todo-text{text-decoration:line-through;color:var(--ink-3)}
+.img-block{margin:14px 0;padding:10px;border:1px solid var(--border);border-radius:14px;background:var(--surface)}
+.img-block img{width:100%;max-height:340px;object-fit:cover;border-radius:10px;display:block}
+.img-caption{font-size:12px;color:var(--ink-3);margin-top:6px;text-align:center}
+
+.editor-bottom-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-top:26px;padding-top:14px;border-top:1px dashed var(--paper-border);font-size:12px;color:var(--ink-3)}
+.shortcut-tip{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+.kbd{display:inline-block;padding:2px 6px;border-radius:6px;background:var(--surface-2);border:1px solid var(--border);font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--ink-2)}
+
+/* 斜杠菜单与划词工具栏 */
+.slash-menu{position:fixed;z-index:80;width:256px;max-height:340px;overflow-y:auto;background:var(--surface);border:1px solid var(--border-strong);border-radius:16px;padding:6px;box-shadow:var(--shadow-lg)}
+.slash-menu-head{font-size:11px;font-weight:800;color:var(--ink-3);padding:6px 10px 4px}
+.slash-item{width:100%;border:0;background:transparent;text-align:left;padding:8px 10px;border-radius:10px;display:flex;align-items:center;gap:10px;transition:background-color .12s}
+.slash-item:hover,.slash-item.active{background:var(--surface-2)}
+.slash-icon{width:30px;height:30px;border-radius:8px;background:var(--surface-hover);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex:none}
+.slash-item.active .slash-icon{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.slash-name{font-size:13px;font-weight:800}
+.slash-desc{font-size:11px;color:var(--ink-3)}
+
+.float-bar{position:fixed;z-index:85;display:inline-flex;align-items:center;gap:2px;background:#111827;color:#FFFFFF;padding:4px;border-radius:11px;box-shadow:0 10px 26px rgba(0,0,0,.32)}
+html[data-theme="dark"] .float-bar{background:#ECEFF6;color:#111827}
+.float-bar button{border:0;background:transparent;color:inherit;height:28px;padding:0 9px;border-radius:8px;font-size:12px;font-weight:800;display:inline-flex;align-items:center;gap:4px}
+.float-bar button:hover{background:rgba(128,128,128,.22)}
+
+/* 右侧那年今日对照面板 */
+.otd-drawer{width:330px;flex:none;padding:18px;position:sticky;top:84px;max-height:calc(100vh - 110px);overflow-y:auto}
+html[data-device="mobile"] .editor-shell{flex-direction:column}
+html[data-device="mobile"] .otd-drawer{width:100%;position:static;max-height:none}
+.otd-drawer-item{padding:14px;border-radius:14px;background:var(--surface-hover);border:1px solid var(--line);margin-top:12px}
+.otd-drawer-body{font-size:13px;line-height:1.7;color:var(--ink-2);margin-top:8px;white-space:pre-line}
+
+/* 日历视图 */
+.cal-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.cal-card{padding:16px}
+.cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:8px;text-align:center;font-size:12px;font-weight:800;color:var(--ink-3)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+html[data-device="mobile"] .cal-grid{gap:4px}
+.cal-cell{min-height:108px;padding:10px;border-radius:14px;border:1px solid var(--line);background:var(--surface);display:flex;flex-direction:column;justify-content:space-between;text-align:left;transition:all .18s;position:relative}
+html[data-device="mobile"] .cal-cell{min-height:66px;padding:6px;border-radius:10px}
+.cal-cell:hover{border-color:var(--border-strong);transform:translateY(-2px);box-shadow:var(--shadow-sm)}
+.cal-cell.other-month{opacity:.38}
+.cal-cell.today{border-color:var(--accent);box-shadow:inset 0 0 0 1.5px var(--accent)}
+.cal-cell-top{display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:800}
+.cal-cell-title{font-size:12px;font-weight:700;line-height:1.35;color:var(--ink);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin:4px 0}
+html[data-device="mobile"] .cal-cell-title,html[data-device="mobile"] .cal-cell-foot{display:none}
+.cal-cell-foot{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--ink-3)}
+.cal-empty-hint{font-size:11px;font-weight:700;color:var(--ink-4);opacity:0;transition:opacity .15s}
+.cal-cell:hover .cal-empty-hint{opacity:1;color:var(--ink-2)}
+
+/* 历史与全文检索 */
+.search-bar-box{display:flex;align-items:center;gap:10px;padding:8px 14px;border-radius:16px;margin-bottom:14px}
+.search-bar-box input{flex:1;border:0;background:transparent;font-size:15px;font-weight:600;outline:none;height:36px}
+.filter-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:18px}
+.select-pill{height:36px;border-radius:10px;border:1px solid var(--border);background:var(--surface);padding:0 12px;font-size:13px;font-weight:700;outline:none}
+.hist-list{display:flex;flex-direction:column;gap:10px}
+.hist-row{padding:16px 20px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;cursor:pointer}
+.hist-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.hist-card{padding:20px;display:flex;flex-direction:column;gap:10px;cursor:pointer}
+.hist-card-snippet{font-size:13px;line-height:1.68;color:var(--ink-2);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+mark.search-hl{background:var(--mark-bg);color:var(--ink);padding:0 3px;border-radius:4px;font-weight:800}
+
+/* 统计分析 */
+.stats-grid-2{display:grid;grid-template-columns:1.25fr 1fr;gap:16px;margin-top:16px}
+html[data-device="mobile"] .stats-grid-2{grid-template-columns:1fr}
+.chart-card{padding:22px 24px}
+.bar-row{display:flex;align-items:center;gap:10px;margin:10px 0}
+.bar-label{width:84px;font-size:13px;font-weight:700;color:var(--ink-2);flex:none}
+.bar-track{flex:1;height:10px;border-radius:999px;background:var(--surface-2);overflow:hidden}
+.bar-fill{height:100%;border-radius:999px;transition:width .4s ease}
+.bar-val{width:46px;text-align:right;font-size:12px;font-weight:800;color:var(--ink-3)}
+
+/* 模态与设置抽屉 */
+.modal-mask{position:fixed;inset:0;z-index:90;background:rgba(15,20,30,.46);backdrop-filter:blur(3px);display:flex;justify-content:flex-end}
+.drawer-panel{width:540px;max-width:100vw;height:100vh;background:var(--surface);border-left:1px solid var(--border);box-shadow:var(--shadow-lg);display:flex;flex-direction:column;animation:slideIn .24s cubic-bezier(.2,.8,.2,1)}
+.drawer-head{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.drawer-tabs{display:flex;gap:4px;padding:10px 24px;border-bottom:1px solid var(--border);overflow-x:auto}
+.drawer-tab{border:0;background:transparent;color:var(--ink-3);height:34px;padding:0 12px;border-radius:9px;font-size:13px;font-weight:800;white-space:nowrap}
+.drawer-tab.active{background:var(--surface-2);color:var(--ink)}
+.drawer-body{flex:1;overflow-y:auto;padding:20px 24px 36px}
+.sub-card{padding:16px;border-radius:16px;border:1px solid var(--border);background:var(--surface-hover);margin-bottom:14px}
+
+.center-modal-mask{position:fixed;inset:0;z-index:95;background:rgba(15,20,30,.46);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:16px}
+.center-modal{width:440px;max-width:100%;background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:24px;box-shadow:var(--shadow-lg);animation:pop .22s cubic-bezier(.2,.8,.2,1)}
+
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);z-index:120;background:var(--dark-btn);color:var(--dark-btn-ink);padding:10px 18px;border-radius:999px;font-size:13px;font-weight:800;box-shadow:var(--shadow-lg);animation:pop .2s ease}
+
+/* 智能摘要与降级标记 */
+.ai-badge{display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 8px;border-radius:999px;background:var(--ai-bg);color:var(--ai-ink);border:1px solid var(--ai-border);font-size:11px;font-weight:800;white-space:nowrap}
+.raw-badge{display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 8px;border-radius:999px;background:var(--surface-2);color:var(--ink-3);border:1px solid var(--border);font-size:11px;font-weight:700;white-space:nowrap}
+.mini-toggle{display:inline-flex;background:var(--surface-2);border:1px solid var(--border);border-radius:9px;padding:2px;gap:2px}
+.mini-toggle button{border:0;background:transparent;color:var(--ink-3);height:24px;padding:0 9px;border-radius:7px;font-size:11.5px;font-weight:800;white-space:nowrap}
+.mini-toggle button.active{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+
+/* 首页回忆问答对话框 */
+.qa-card{padding:20px 24px;margin-bottom:26px;background:linear-gradient(135deg,var(--surface) 0%,var(--surface-hover) 100%)}
+html[data-device="mobile"] .qa-card{padding:16px}
+.qa-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
+.qa-title{display:flex;align-items:center;gap:8px;font-size:17px;font-weight:900;margin:0}
+.qa-prompts{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.qa-prompt-pill{border:1px solid var(--border);background:var(--surface);color:var(--ink-2);padding:6px 12px;border-radius:999px;font-size:12px;font-weight:700;transition:all .16s;text-align:left}
+.qa-prompt-pill:hover{border-color:var(--accent);background:var(--accent-soft);color:var(--ink)}
+.qa-input-row{display:flex;gap:8px;margin-top:12px}
+.qa-input-row input{flex:1;height:42px;border-radius:12px;border:1px solid var(--border-strong);background:var(--surface);padding:0 14px;font-size:13.5px;font-weight:600;outline:none}
+.qa-input-row input:focus{border-color:var(--ink-2)}
+.qa-thread{display:flex;flex-direction:column;gap:12px;margin-top:14px;padding-top:14px;border-top:1px dashed var(--border)}
+.qa-msg-user{align-self:flex-end;max-width:84%;background:var(--dark-btn);color:var(--dark-btn-ink);padding:10px 14px;border-radius:16px 16px 4px 16px;font-size:13.5px;font-weight:700;line-height:1.55}
+.qa-msg-ai{align-self:stretch;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.qa-trace{border-radius:11px;background:var(--surface-hover);border:1px solid var(--line);padding:8px 12px;font-size:12px;color:var(--ink-2)}
+.qa-trace-head{display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;font-weight:800;width:100%;border:0;background:transparent;padding:0;text-align:left}
+.qa-trace-steps{margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);display:flex;flex-direction:column;gap:5px}
+.qa-answer-text{font-size:14px;line-height:1.75;color:var(--ink);white-space:pre-line}
+.qa-cites{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.cite-chip{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--ai-border);background:var(--ai-bg);color:var(--ai-ink);padding:5px 10px;border-radius:999px;font-size:12px;font-weight:800;transition:transform .16s}
+.cite-chip:hover{transform:translateY(-2px)}
+
+/* 历史日期范围筛选 */
+.date-presets{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.preset-pill{border:1px solid var(--border);background:var(--surface);color:var(--ink-2);height:32px;padding:0 12px;border-radius:999px;font-size:12.5px;font-weight:700;transition:all .15s}
+.preset-pill.active{background:var(--dark-btn);color:var(--dark-btn-ink);border-color:transparent}
+.date-range-inputs{display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:0 10px;height:36px;font-size:12.5px;font-weight:700}
+.date-range-inputs input[type="date"]{border:0;background:transparent;font-size:12.5px;font-weight:700;outline:none}
+
+/* 日历补算按钮 */
+.cal-recalc-btn{border:1px solid var(--ai-border);background:var(--ai-bg);color:var(--ai-ink);border-radius:6px;padding:1px 6px;font-size:10.5px;font-weight:800}
+
+/* 统计趣味洞察专区 */
+.insight-sec{margin-top:26px}
+.insight-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:14px}
+html[data-device="mobile"] .insight-grid{grid-template-columns:1fr}
+.insight-card{padding:20px 22px;display:flex;flex-direction:column;gap:12px}
+.dual-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+html[data-device="mobile"] .dual-col{grid-template-columns:1fr}
+.dual-box{background:var(--surface-hover);border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.topic-cloud{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.topic-pill{border:1px solid var(--border);background:var(--surface-hover);color:var(--ink);border-radius:999px;padding:6px 12px;font-weight:800;display:inline-flex;align-items:center;gap:5px;transition:all .16s}
+.topic-pill:hover{background:var(--accent-soft);border-color:var(--accent)}
+.highlight-timeline{display:flex;flex-direction:column;gap:10px}
+.hl-item{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:12px;background:var(--surface-hover);border:1px solid var(--line);cursor:pointer;text-align:left;width:100%}
+.hl-item:hover{border-color:var(--border-strong)}
+.hl-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);margin-top:6px;flex:none}
+.portrait-card{background:linear-gradient(145deg,var(--paper) 0%,var(--surface) 100%);border:1px solid var(--paper-border);border-radius:16px;padding:16px;font-size:13.5px;line-height:1.8;color:var(--ink-2)}
+
+/* 设置抽屉增强与居中迁移模态框 */
+.form-field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.form-label{font-size:12.5px;font-weight:800;color:var(--ink-2)}
+.form-input{height:38px;border-radius:10px;border:1px solid var(--border-strong);background:var(--surface);padding:0 12px;font-size:13px;font-weight:600;outline:none;width:100%}
+.form-input:focus{border-color:var(--ink-2)}
+.conn-result{padding:10px 12px;border-radius:11px;font-size:12.5px;font-weight:700;line-height:1.5;margin-top:10px}
+.conn-result.ok{background:var(--ok-bg);border:1px solid var(--ok-line);color:var(--ok-ink)}
+.conn-result.err{background:var(--danger-bg);border:1px solid var(--danger);color:var(--danger-ink)}
+.progress-bar{height:9px;border-radius:999px;background:var(--surface-2);overflow:hidden;margin:10px 0}
+.progress-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--accent),#F97316);transition:width .25s ease}
+.manage-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 11px;border-radius:11px;border:1px solid var(--border);background:var(--surface);margin-bottom:7px;flex-wrap:wrap}
+.color-dots{display:flex;flex-wrap:wrap;gap:6px}
+.color-dot-btn{width:20px;height:20px;border-radius:50%;border:2px solid transparent;padding:0}
+.color-dot-btn.active{border-color:var(--ink);transform:scale(1.12)}
+.modal-overlay-top{z-index:110}
+.btn:disabled{opacity:.42;cursor:not-allowed;transform:none!important;box-shadow:none!important}
+
+/* 第 3 版统计页：周期复盘、时间簿联动与双高光时间轴 */
+.review-shell{margin-top:26px;display:flex;flex-direction:column;gap:14px}
+.review-controls{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
+.period-pills{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lock-banner{padding:22px 24px;border-radius:18px;border:1.5px dashed var(--border-strong);background:var(--surface-hover);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+.tb-cross-card{padding:18px 20px;border:1px solid var(--border);border-radius:18px;background:var(--surface)}
+.tb-bar-row{display:flex;align-items:center;gap:10px;margin:8px 0;font-size:12.5px}
+.tb-bar-name{width:92px;font-weight:800;color:var(--ink);flex:none}
+.tb-bar-track{flex:1;height:9px;border-radius:999px;background:var(--surface-2);overflow:hidden}
+.tb-bar-fill{height:100%;border-radius:999px}
+.tb-bar-meta{width:118px;text-align:right;font-size:12px;font-weight:700;color:var(--ink-3);flex:none}
+.dim-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+html[data-device="mobile"] .dim-grid{grid-template-columns:1fr}
+.dim-box{padding:16px 18px;border-radius:16px;border:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;gap:6px}
+.quarter-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+html[data-device="mobile"] .quarter-grid{grid-template-columns:repeat(2,1fr)}
+.quarter-box{padding:14px;border-radius:14px;background:var(--surface-hover);border:1px solid var(--line);display:flex;flex-direction:column;gap:5px}
+.hl-item-row{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:11px 13px;border-radius:13px;background:var(--surface-hover);border:1px solid var(--line)}
+.hl-main-btn{flex:1;display:flex;gap:10px;align-items:flex-start;border:0;background:transparent;padding:0;text-align:left;min-width:0}
+.hl-main-btn:hover .hl-title-text{text-decoration:underline}
+.algo-tag{display:inline-flex;align-items:center;height:20px;padding:0 7px;border-radius:999px;background:var(--surface-2);border:1px solid var(--border);color:var(--ink-3);font-size:11px;font-weight:700;white-space:nowrap}
+.pin-badge{display:inline-flex;align-items:center;height:20px;padding:0 7px;border-radius:999px;background:var(--ai-bg);border:1px solid var(--ai-border);color:var(--ai-ink);font-size:11px;font-weight:800;white-space:nowrap}
+.hl-actions{display:flex;align-items:center;gap:4px;flex:none}
+.hl-op-btn{border:1px solid var(--border);background:var(--surface);color:var(--ink-3);height:24px;padding:0 7px;border-radius:7px;font-size:11px;font-weight:700}
+.hl-op-btn:hover{border-color:var(--ink-2);color:var(--ink)}
+
+@keyframes ping{0%{box-shadow:0 0 0 0 currentColor}75%,100%{box-shadow:0 0 0 7px transparent}}
+@keyframes slideIn{from{transform:translateX(28px);opacity:0}to{transform:none;opacity:1}}
+@keyframes pop{from{transform:translateY(10px) scale(.97);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="device-stage">
+  <div class="app-frame" id="appFrame">
+
+    <!-- 吸顶导航栏 -->
+    <header class="topbar-wrap" id="topbarWrap">
+      <div class="topbar">
+        <button class="brand" id="brandBtn" title="回到首页">
+          <span class="brand-logo" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/><path d="M9 7h6"/><path d="M9 11h4"/></svg>
+          </span>
+          <span>
+            <div class="brand-name">人生簿</div>
+            <div class="brand-sub">私密每日日记 · 交互原型</div>
+          </span>
+        </button>
+
+        <nav class="nav-pills desktop-nav" aria-label="主导航">
+          <button class="nav-pill active" data-view="home">首页</button>
+          <button class="nav-pill" data-view="calendar">日历</button>
+          <button class="nav-pill" data-view="history">历史</button>
+          <button class="nav-pill" data-view="stats">统计</button>
+        </nav>
+
+        <div class="top-actions">
+          <div class="seg-mini hide-mobile" title="预览桌面或手机排版">
+            <button id="devDesktopBtn" class="active" data-device-btn="desktop">电脑</button>
+            <button id="devMobileBtn" data-device-btn="mobile">手机</button>
+          </div>
+          <button class="icon-btn" id="themeToggleBtn" title="切换浅色 / 夜间深色模式" aria-label="切换浅色或夜间深色模式"></button>
+          <button class="sync-pill ok" id="syncPillBtn" title="点击模拟切换同步状态">
+            <span class="sync-dot"></span>
+            <span class="sync-text-full" id="syncText">数据已同步</span>
+          </button>
+          <button class="icon-btn" id="openSettingsBtn" title="设置与历史导入" aria-label="打开设置">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="main-wrap" id="mainWrap"></main>
+
+    <!-- 手机端底部四栏导航 -->
+    <nav class="mobile-bottom-nav" aria-label="手机端导航">
+      <button class="mnav-btn active" data-view="home"><span>🏠</span><span>首页</span></button>
+      <button class="mnav-btn" data-view="calendar"><span>📅</span><span>日历</span></button>
+      <button class="mnav-btn" data-view="history"><span>🔎</span><span>历史</span></button>
+      <button class="mnav-btn" data-view="stats"><span>📊</span><span>统计</span></button>
+    </nav>
+  </div>
+</div>
+
+<!-- 浮层：斜杠命令菜单 -->
+<div class="slash-menu hidden" id="slashMenu"></div>
+
+<!-- 浮层：划词格式工具栏 -->
+<div class="float-bar hidden" id="floatBar">
+  <button data-fmt="bold" title="加粗"><b>加粗</b></button>
+  <button data-fmt="italic" title="斜体"><i>斜体</i></button>
+  <button data-fmt="highlight" title="暖黄高亮">🖍 高亮</button>
+  <button data-fmt="strike" title="删除线"><s>划线</s></button>
+</div>
+
+<!-- 隐藏文件选择器（本地图片上传演示） -->
+<input type="file" id="imagePickerInput" accept="image/*" class="hidden">
+
+<!-- 抽屉与弹窗容器 -->
+<div id="modalRoot"></div>
+<div id="centerModalRoot"></div>
+<div id="toastRoot"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  const TAG_PALETTE = [
+    { name: "晴空蓝", color: "#4F7BFF", tint: "#EDF1FF", ink: "#2D4FCC", darkTint: "#1E2842", darkInk: "#9AB4FF" },
+    { name: "薰衣紫", color: "#8B5CF6", tint: "#F2EDFF", ink: "#6236D6", darkTint: "#292140", darkInk: "#C4B5FD" },
+    { name: "琥珀黄", color: "#F59E0B", tint: "#FEF5E2", ink: "#9A5800", darkTint: "#332714", darkInk: "#FCD34D" },
+    { name: "玫瑰红", color: "#F43F5E", tint: "#FFEDF0", ink: "#C8203E", darkTint: "#371D26", darkInk: "#FDA4AF" },
+    { name: "薄荷青", color: "#14B8A6", tint: "#E6F7F4", ink: "#0B7F72", darkTint: "#162E2C", darkInk: "#5EEAD4" },
+    { name: "海天蓝", color: "#0EA5E9", tint: "#E5F5FD", ink: "#086A99", darkTint: "#172B38", darkInk: "#7DD3FC" },
+    { name: "森野绿", color: "#22C55E", tint: "#E8F8EE", ink: "#15803D", darkTint: "#162E20", darkInk: "#86EFAC" },
+    { name: "樱花粉", color: "#EC4899", tint: "#FDEDF6", ink: "#B5186E", darkTint: "#341E2C", darkInk: "#F9A8D4" },
+    { name: "深靛蓝", color: "#6366F1", tint: "#EEF2FF", ink: "#4338CA", darkTint: "#222442", darkInk: "#A5B4FC" },
+    { name: "石板灰", color: "#64748B", tint: "#F1F5F9", ink: "#334155", darkTint: "#232A36", darkInk: "#CBD5E1" }
+  ];
+
+  const INITIAL_TAGS = [
+    { id: "t1", name: "日常记录", ...TAG_PALETTE[0], count: 812, enabled: true },
+    { id: "t2", name: "节点事件", ...TAG_PALETTE[1], count: 96, enabled: true },
+    { id: "t3", name: "重要事件", ...TAG_PALETTE[2], count: 58, enabled: true },
+    { id: "t4", name: "负面事件", ...TAG_PALETTE[3], count: 49, enabled: true },
+    { id: "t5", name: "休闲躺平", ...TAG_PALETTE[4], count: 118, enabled: true },
+    { id: "t6", name: "出差工作", ...TAG_PALETTE[5], count: 62, enabled: true },
+    { id: "t7", name: "旅行游玩", ...TAG_PALETTE[6], count: 31, enabled: true },
+    { id: "t8", name: "反省总结", ...TAG_PALETTE[7], count: 14, enabled: true },
+    { id: "t9", name: "年度复盘", ...TAG_PALETTE[8], count: 4, enabled: true }
+  ];
+
+  const INITIAL_MOODS = [
+    { id: "m1", emoji: "😄", name: "开心", label: "😄 开心", tone: "#22C55E", level: 4, count: 396 },
+    { id: "m2", emoji: "🥰", name: "兴奋", label: "🥰 兴奋", tone: "#F59E0B", level: 4, count: 43 },
+    { id: "m3", emoji: "😌", name: "平静", label: "😌 平静", tone: "#64748B", level: 3, count: 673 },
+    { id: "m4", emoji: "😮‍💨", name: "疲惫", label: "😮‍💨 疲惫", tone: "#8B5CF6", level: 2, count: 38 },
+    { id: "m5", emoji: "😰", name: "焦虑", label: "😰 焦虑", tone: "#3B82F6", level: 1, count: 29 },
+    { id: "m6", emoji: "😤", name: "烦躁", label: "😤 烦躁", tone: "#F97316", level: 1, count: 31 },
+    { id: "m7", emoji: "😠", name: "生气", label: "😠 生气", tone: "#EF4444", level: 1, count: 16 },
+    { id: "m8", emoji: "😢", name: "低落", label: "😢 低落", tone: "#BE123C", level: 1, count: 18 }
+  ];
+
+  const OLD_MOOD_MAP_DEMO = [
+    { oldLabel: "😐 平静 / 🙃 一般 / 😔 不差", newLabel: "😌 平静", count: 673 },
+    { oldLabel: "😄 开心", newLabel: "😄 开心", count: 396 },
+    { oldLabel: "🥰 兴奋", newLabel: "🥰 兴奋", count: 43 },
+    { oldLabel: "😣 疲惫 / 😔 心累", newLabel: "😮‍💨 疲惫", count: 38 },
+    { oldLabel: "😖 焦虑", newLabel: "😰 焦虑", count: 29 },
+    { oldLabel: "😷 不爽", newLabel: "😤 烦躁", count: 31 },
+    { oldLabel: "😫 伤心 / 💔 心碎 / 😧 糟糕", newLabel: "😢 低落", count: 18 }
+  ];
+
+  /* 全部采用虚构日常示例，便于体验排版、检索、智能摘要、回忆问答与热力图 */
+  const INITIAL_ENTRIES = [
+    {
+      id: "d-2026-11-19", kind: "daily", date: "2026-11-19",
+      title: "把桌面线缆彻底理顺，晚上静心写下新规划",
+      aiShortTitle: "整理书桌线缆，晚间散步与阅读",
+      aiSummary: "晚饭做了番茄滑蛋并整理书桌电源线，秋夜出门散步买豆浆；工作上梳理界面保持呼吸感，睡前读完散文集最后两章并计划周末去看银杏。",
+      aiTopics: ["桌面整理", "散步", "阅读", "界面梳理"],
+      aiQuote: "保留足够的呼吸感与留白，生活和工具才能顺手。",
+      aiReady: true,
+      moods: ["😌 平静", "😄 开心"], tags: ["节点事件", "日常记录"],
+      html: `<h3>生活部分</h3><p>1、晚饭自己做了番茄滑蛋盖饭，简单又热乎，洗完碗顺手把书桌背后的电源线全部收进理线盒里，桌面瞬间清爽很多。</p><p>2、出门散步二十分钟，秋末晚风微凉但很清醒，顺便去楼下便利店买了明天早上的热豆浆。</p><h3>工作部分</h3><p>1、把之前积攒的小工具界面梳理了一遍，核心目标还是让高频操作少点几步，界面保留<mark>足够的呼吸感与留白</mark>。</p><h3>娱乐部分</h3><p>1、睡前翻完了买来很久的散文集最后两章，把喜欢的一段话摘录进今天的笔记里。</p><h3>见闻记事</h3><p>1、听说城东老公园的银杏已经全黄了，这周末天气如果晴朗，打算带相机过去走一圈。</p>`
+    },
+    {
+      id: "d-2026-11-18", kind: "daily", date: "2026-11-18",
+      title: "雨夜听歌做方案，效率出奇地高",
+      aiShortTitle: "雨天煮茶写方案，四小时高效推进",
+      aiSummary: "全天细雨，上午煮了一壶陈皮白茶沉心工作；连续专注四小时拆分清下阶段功能边界，心境踏实，傍晚在巷口新烘焙店买了现烤核桃包。",
+      aiTopics: ["喝茶", "效率", "方案拆解"],
+      aiQuote: "把边界拆清，心里就踏实了一半。",
+      aiReady: true,
+      moods: ["😌 平静"], tags: ["日常记录"],
+      html: `<h3>生活部分</h3><p>1、窗外下了一整天细雨，上午煮了一壶陈皮白茶，屋里暖烘烘的，很适合沉下心做事。</p><h3>工作部分</h3><p>1、集中四小时把下阶段功能边界拆清，写完文档之后心里踏实了不少。</p><h3>见闻记事</h3><p>1、巷口新开的烘焙店今天试营业，路过时买了一只现烤核桃包。</p>`
+    },
+    {
+      id: "d-2026-11-15", kind: "daily", date: "2026-11-15",
+      title: "周末环湖慢跑十公里，状态回暖",
+      aiShortTitle: "清晨东湖十公里慢跑，聚餐涮肉",
+      aiSummary: "七点自然醒，沿着东湖绿道完成十公里慢跑，呼吸节奏平稳舒畅；下午在家窝沙发重温老电影，晚上和朋友围炉吃铜锅涮肉补足能量。",
+      aiTopics: ["慢跑", "东湖", "老电影", "聚餐"],
+      aiQuote: "跑出一身透汗后，紧绷的身体与心绪都松了下来。",
+      aiReady: true,
+      moods: ["🥰 兴奋", "😄 开心"], tags: ["休闲躺平"],
+      html: `<h3>生活部分</h3><p>1、难得早上七点自然醒，沿着东湖绿道慢慢跑完十公里，配速不快但呼吸节奏特别稳，出了一身透汗。</p><h3>娱乐部分</h3><p>1、下午窝在沙发上看了一部老电影，晚上约朋友去吃了热气腾腾的铜锅涮肉。</p>`
+    },
+    {
+      id: "d-2026-11-10", kind: "daily", date: "2026-11-10",
+      title: "忙碌周中后的短暂放空与复盘",
+      aiShortTitle: "赶工拉伸放松，复盘聚焦单任务",
+      aiSummary: "连续赶工两天肩膀僵硬，晚饭后拉伸泡热水澡缓解疲惫；复盘进度意识到效率拖慢源于并行开太多分支，决定往后每日锁死最重要的一件事。",
+      aiTopics: ["复盘", "聚焦", "赶工"],
+      aiQuote: "拖慢节奏的不是任务难，而是同时开太多分支。",
+      aiReady: false,
+      moods: ["😮‍💨 疲惫", "😌 平静"], tags: ["反省总结"],
+      html: `<h3>生活部分</h3><p>1、连续赶工两天肩膀有点僵，晚饭后做完拉伸早早洗了个热水澡。</p><h3>工作部分</h3><p>1、复盘这周进度时发现，真正拖慢节奏的不是任务难，而是同时开太多分支。<b>以后每天只锁死最重要的一件事</b>。</p>`
+    },
+    {
+      id: "d-2026-11-02", kind: "daily", date: "2026-11-02",
+      title: "去海边城市出差两日，傍晚吹海风散步",
+      aiShortTitle: "海边城市出差汇报，海岸散步看落日",
+      aiSummary: "上午顺利完成冬季产品清单团队对齐与现场演示；下午五点收工后沿海岸线步行四公里，吹海风吹散多日疲惫，拍下温柔的橘子海落日。",
+      aiTopics: ["海风", "出差", "落日", "散步"],
+      aiQuote: "海风把连日疲惫一下吹散，橘子海落日是最好的奖赏。",
+      aiReady: true,
+      moods: ["😄 开心"], tags: ["出差工作", "旅行游玩"],
+      html: `<h3>工作部分</h3><p>1、上午和团队顺利对齐了冬季产品清单，现场演示非常顺利。</p><h3>生活部分</h3><p>1、下午五点收工后沿着海岸线走了四公里，海风把连日疲惫一下吹散了，拍到很温柔的橘子海落日。</p>`
+    },
+    {
+      id: "d-2025-11-20", kind: "daily", date: "2025-11-20",
+      title: "连续写满两年半，回头翻看旧日记竟觉得很治愈",
+      aiShortTitle: "记满两年半纪念，翻看旧日记获治愈",
+      aiSummary: "晚上整理书架重读往年记录，发现当年觉得过不去的琐碎烦恼早已轻描淡写；中午和老搭档吃工作餐，敲定来年春天想尝试的新方向。",
+      aiTopics: ["复盘", "整理书架", "老搭档"],
+      aiQuote: "持续记录的意义，是给未来的自己留一份不失真的时间坐标。",
+      aiReady: true,
+      moods: ["😄 开心"], tags: ["节点事件"],
+      html: `<h3>生活部分</h3><p>1、晚上整理书架时发现以前总觉得过不去的琐碎烦恼，放到一年后再看其实都已经轻描淡写过去了。</p><h3>工作部分</h3><p>1、和几位老搭档吃了个简单的工作餐，明确了来年春天要尝试的新方向。</p><blockquote>持续记录的意义，大概就是给未来的自己留一份不失真的时间坐标。</blockquote>`
+    },
+    {
+      id: "d-2024-11-20", kind: "daily", date: "2024-11-20",
+      title: "初冬第一场霜降，在阳台搭好了小花架",
+      aiShortTitle: "阳台组装实木花架，试做炖牛腩",
+      aiSummary: "收到网购实木花架并花一小时组装妥当，把迷迭香和绿萝全挪到向阳窗边；晚上照新方子试做炖牛腩，火候恰好拌饭连吃两大碗。",
+      aiTopics: ["花架绿植", "做饭", "阳台"],
+      aiQuote: "把绿植挪到向阳窗边，屋里立刻有了过冬的暖意。",
+      aiReady: true,
+      moods: ["😌 平静"], tags: ["日常记录"],
+      html: `<h3>生活部分</h3><p>1、网购的实木花架今天到货，花了一小时组装好，把几盆迷迭香和绿萝全部挪到向阳窗边。</p><h3>娱乐部分</h3><p>1、晚上试了新学的炖牛腩方子，火候控制得刚好，拌米饭吃了两大碗。</p>`
+    },
+    {
+      id: "d-2023-11-20", kind: "daily", date: "2023-11-20",
+      title: "把阅读角彻底布置完毕，开始早睡计划",
+      aiShortTitle: "阅读角落地暖灯到位，开启早睡计划",
+      aiSummary: "等待已久的落地暖光灯终于安装完毕，晚上关掉刺眼顶灯，只留一盏柔和暖光静静写日记，顺便立下每晚早睡的新计划。",
+      aiTopics: ["阅读角", "早睡", "暖光灯"],
+      aiQuote: "关掉顶灯留一盏暖光，夜晚立刻安静下来。",
+      aiReady: true,
+      moods: ["🥰 兴奋"], tags: ["重要事件"],
+      html: `<h3>生活部分</h3><p>1、落地暖光灯终于装好了，晚上关掉顶灯只留这一盏暖光写日记，氛围感一下子拉满。</p>`
+    },
+    {
+      id: "s-2025-year", kind: "special", date: "2025-12-31",
+      title: "2025 年度复盘：稳住节奏，把时间留给重要的人和事",
+      aiShortTitle: "2025年度回顾：阅读打卡与情绪留白",
+      aiSummary: "回顾全年完成一年阅读打卡并独立做出日常小工具，学会情绪上头前先停十秒减少争执；制定来年继续晚十一点前记录、减少碎片视频的行动准则。",
+      aiTopics: ["年度复盘", "阅读", "早睡", "情绪管理"],
+      aiQuote: "情绪上头前先停十秒，很多争执因此少了一半。",
+      aiReady: true,
+      moods: ["😌 平静", "😄 开心"], tags: ["年度复盘", "反省总结"],
+      html: `<h3>一、今年最值得记住的三个瞬间</h3><p>1、完成了持续一年的阅读打卡，也第一次完整独立做出了一套每天自己在用的小工具。</p><p>2、学会在情绪上头前先停十秒，很多不必要的争执因此少了一半。</p><h3>二、明年要继续坚持与戒掉的事</h3><ul><li>继续坚持每晚十一点前记录当天三五件事。</li><li>少看碎片化短视频，把晚间整块时间留给阅读和散步。</li></ul>`
+    }
+  ];
+
+  const INITIAL_TEMPLATES = [
+    {
+      id: "tpl-daily",
+      name: "标准四段日记",
+      desc: "延续每日写作文脉：生活、工作、娱乐与见闻",
+      sections: ["生活部分", "工作部分", "娱乐部分", "见闻记事"]
+    },
+    {
+      id: "tpl-annual",
+      name: "专项 / 年度复盘骨架",
+      desc: "适合月末、年末或重大节点深度梳理",
+      sections: ["一、关键收获与高光瞬间", "二、暴露的问题与反思", "三、下阶段重点行动"]
+    }
+  ];
+
+  const SLASH_COMMANDS = [
+    { key: "h3", icon: "H3", name: "三级小节标题", desc: "如「生活部分」「工作部分」" },
+    { key: "h2", icon: "H2", name: "二级章节标题", desc: "较大分章结构标题" },
+    { key: "p", icon: "¶", name: "普通正文段落", desc: "切换回常规文字段落" },
+    { key: "ol", icon: "1.", name: "编号条目列表", desc: "逐条梳理当天事件" },
+    { key: "ul", icon: "•", name: "无序圆点列表", desc: "零散想法与清单" },
+    { key: "todo", icon: "☑", name: "待办复选框", desc: "可点击勾选完成" },
+    { key: "quote", icon: "❝", name: "引用块", desc: "摘录金句或当日感悟" },
+    { key: "code", icon: "</>", name: "代码块", desc: "记录命令、公式或片段" },
+    { key: "hr", icon: "—", name: "分割线", desc: "轻柔分隔段落内容" },
+    { key: "img-demo", icon: "🖼", name: "插入示例配图", desc: "演示图文混排效果" },
+    { key: "img-local", icon: "📁", name: "选择本地图片上传", desc: "从电脑挑一张图立刻插入" }
+  ];
+
+  /* 模拟全年热力图背景数据（确保 2023-2026 看起来饱满真实，并与 INITIAL_ENTRIES 对齐） */
+  function buildHeatMapData(){
+    const map = {};
+    const moodPool = ["😌 平静","😌 平静","😄 开心","😄 开心","🥰 兴奋","😮‍💨 疲惫","😤 烦躁"];
+    const shortTemplates = [
+      "平淡充实的一天，早晚散步与阅读",
+      "推进手头重点任务，晚饭自己下厨",
+      "难得放晴出门走走，晒太阳补能量",
+      "忙完阶段杂事，晚上听歌静心复盘",
+      "与好友小聚聊天，睡前写下新灵感"
+    ];
+    const start = new Date("2023-06-25T00:00:00");
+    const end = new Date("2026-11-19T00:00:00");
+    let seed = 1337;
+    function rand(){ seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
+    let idx = 0;
+    for(let d = new Date(start); d <= end; d.setDate(d.getDate()+1)){
+      const ds = fmtDate(d);
+      const wc = Math.round(180 + rand() * 1480);
+      const mood = moodPool[Math.floor(rand() * moodPool.length)];
+      const aiReady = (idx % 9 !== 0);
+      map[ds] = {
+        date: ds,
+        wc,
+        mood,
+        title: `${ds} 日常生活记录`,
+        aiShortTitle: shortTemplates[idx % shortTemplates.length],
+        aiReady
+      };
+      idx++;
+    }
+    INITIAL_ENTRIES.forEach(e => {
+      if(e.kind === "daily"){
+        map[e.date] = {
+          date: e.date,
+          wc: countWords(e.html),
+          mood: e.moods[0] || "😌 平静",
+          title: e.title,
+          aiShortTitle: e.aiShortTitle || e.title,
+          aiReady: e.aiReady !== false,
+          realId: e.id
+        };
+      }
+    });
+    return map;
+  }
+
+  function fmtDate(d){
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,"0");
+    const day = String(d.getDate()).padStart(2,"0");
+    return `${y}-${m}-${day}`;
+  }
+  function stripHtml(html){
+    const div = document.createElement("div");
+    div.innerHTML = html || "";
+    return (div.innerText || div.textContent || "").replace(/\s+/g," ").trim();
+  }
+  function countWords(html){
+    return stripHtml(html).replace(/\s/g,"").length;
+  }
+  function escHtml(s){
+    return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+
+  /* 全局状态 */
+  const state = {
+    view: "home",
+    theme: "light",
+    device: "desktop",
+    syncMode: "ok", // ok | syncing | offline
+    heatYear: "2026",
+    heatColorBy: "words", // words | mood
+    calYear: 2026,
+    calMonth: 10, // 0-indexed => 10 为 11 月
+    histQuery: "",
+    histKind: "all",
+    histPreset: "all", // all | 7d | 30d | month | thisYear | lastYear | 2024 | 2023 | custom
+    histStart: "",
+    histEnd: "",
+    histTag: "all",
+    histMood: "all",
+    histLayout: "list", // list | gallery
+    statsYear: "2026",
+    tags: JSON.parse(JSON.stringify(INITIAL_TAGS)),
+    moods: JSON.parse(JSON.stringify(INITIAL_MOODS)),
+    entries: JSON.parse(JSON.stringify(INITIAL_ENTRIES)),
+    templates: JSON.parse(JSON.stringify(INITIAL_TEMPLATES)),
+    trash: [
+      { id: "tr-1", date: "2026-10-08", title: "国庆返程随手记草稿", words: 186, deletedAt: "2026-11-12" }
+    ],
+    editor: {
+      id: null,
+      kind: "daily",
+      date: "2026-11-20",
+      title: "",
+      moods: ["😌 平静"],
+      tags: ["日常记录"],
+      html: "",
+      showOtd: false,
+      otdMode: "summary", // summary | raw
+      saveText: "已就绪 · 本地防丢已开启",
+      popover: null // null | 'mood' | 'tag' | 'template' | 'versions'
+    },
+    aiConfig: {
+      enabled: true,
+      provider: "openai", // openai | gemini | anthropic
+      baseUrl: "https://api.openai.com/v1",
+      apiKey: "sk-demo-••••••••8f2a",
+      showKey: false,
+      modelId: "gpt-4.1-mini",
+      connStatus: "idle", // idle | testing | ok | error
+      connMsg: "",
+      simulateError: false,
+      batchTotal: 1244,
+      batchDone: 896,
+      batchRunning: false
+    },
+    qa: {
+      collapsed: false,
+      loading: false,
+      messages: []
+    },
+    insight: {
+      refreshedAt: "今天 08:15",
+      tokenHint: "约 2.1 千词元（已本地缓存）",
+      refreshing: false,
+      version: 1
+    },
+    timebookConfig: {
+      enabled: true,
+      url: "http://192.168.31.10:3210",
+      password: "••••••••",
+      showPwd: false,
+      connStatus: "idle",
+      connMsg: "",
+      simulateError: false
+    },
+    statsReview: {
+      mode: "monthly", // monthly | yearly
+      month: "2026-10",
+      year: "2025",
+      regenerating: false
+    },
+    monthlyReviews: {
+      "2026-11": {
+        locked: true,
+        unlockDate: "2026-12-01",
+        hint: "2026 年 11 月尚未结束（当前记录至 11 月 19 日）。为保证整月口径完整，进入 2026 年 12 月 1 日后自动解锁生成本月客观复盘与月度高光轴。"
+      },
+      "2026-10": {
+        locked: false,
+        overview: {
+          days: "31 天（全勤）", words: "27,420 字", mood: "😌 平静为主 · 😄 开心次之",
+          tbHours: "218.5 小时", todoRate: "86%",
+          summary: "10 月整体节奏平稳扎实，国庆长假后工作推进呈阶梯式上升。全月未出现连续多日的高强度透支，但在月中因同时推进两项改造出现过三次肩颈疲惫与效率分化，月末通过夜间散步和早睡逐步回调。",
+          contextNote: "第 2 层上下文：当月 31 篇结构化日概要（约 6,200 字）+ 量化统计"
+        },
+        timebookMix: [
+          { name: "工作推进", hours: 124.5, pct: 57, delta: "+8.2h", color: "#4F7BFF" },
+          { name: "学习成长", hours: 34.0, pct: 16, delta: "+4.5h", color: "#8B5CF6" },
+          { name: "居家生活", hours: 38.5, pct: 17, delta: "-1.2h", color: "#14B8A6" },
+          { name: "运动休闲", hours: 21.5, pct: 10, delta: "+3.0h", color: "#22C55E" }
+        ],
+        crossInsights: [
+          "工作投入较 9 月增加 8.2 小时，且周中连续 4 小时整块聚焦时段（如 10-18 类专注日）的日记评价普遍写着“心里踏实”，说明高投入本身不致疲惫，碎片切换才是消耗源。",
+          "运动休闲模块比上月多投入 3 小时（主要集中在周末慢跑与傍晚快走），对应次日日记里的「😮‍💨 疲惫」出现频次下降了近一半。",
+          "待办完成率达 86%，但有 4 项跨周遗留待办反复在日记工作部分被提及，说明大颗粒任务未拆到当日可执行粒度。"
+        ],
+        dimensions: {
+          work: "前半月收尾了三季度收口清单，后半月集中梳理日常小工具界面。单日聚焦单任务时推进感明显强于多线并行。",
+          life: "厨艺与居家秩序保持较好，自炊晚饭 19 天；连续 2 周坚持睡前远离短视频，平均入睡时间较 9 月提前约 25 分钟。",
+          leisure: "读完两本散文与设计类书目，完成一次城郊骑行和两次朋友小聚；看老电影是本月最常出现的周末放松方式。",
+          emotion: "情绪波动主要集中在中旬赶工期（出现 3 次「😮‍💨 疲惫」与 1 次「😤 烦躁」）；有效的回血触发动作是「洗热水澡+拉伸」「下厨」与「出门吹风走 20 分钟」。"
+        },
+        nextActions: [
+          "针对工作耗时最高但易卡壳的跨周事项，在每天开始计时前只锁定 1 个必达节点，避免同时开多个分支。",
+          "保持每周至少 3 次、每次 30 分钟以上的户外快走或慢跑，作为低成本情绪稳压器。"
+        ],
+        highlights: [
+          { id: "mh-10-1", date: "2026-10-03", title: "秋日环湖骑行四十公里，沿途拍下芦苇落日", reason: "户外长程运动带来全月最高情绪满意度", algoTag: "旅行游玩加权", entryId: "d-2026-11-15", pinned: false },
+          { id: "mh-10-2", date: "2026-10-11", title: "国庆收心首周拆清季度架构边界", reason: "篇幅达当月均值 1.6 倍，工作推进关键转折", algoTag: "篇幅峰值 1.6x", entryId: "d-2026-11-18", pinned: true },
+          { id: "mh-10-3", date: "2026-10-19", title: "晚间整理书房并淘汰冗余旧物两箱", reason: "关键事件重要度 4 分，建立极简工作区秩序", algoTag: "节点事件加权", entryId: "d-2026-11-19", pinned: false },
+          { id: "mh-10-4", date: "2026-10-27", title: "月中疲惫期主动叫停多线并行并复盘", reason: "出现明确认知反思与情绪自愈拐点", algoTag: "情绪转折点", entryId: "d-2026-11-10", pinned: false }
+        ]
+      },
+      "2026-09": {
+        locked: false,
+        overview: {
+          days: "30 天（全勤）", words: "24,180 字", mood: "😌 平静为主 · 😮‍💨 疲惫偶现",
+          tbHours: "204.0 小时", todoRate: "81%",
+          summary: "9 月属于夏秋换季与三季度冲刺期，出差与对接较多，记录篇幅略低于 10 月，但工作日志密度高。",
+          contextNote: "第 2 层上下文：当月 30 篇结构化日概要（约 5,850 字）+ 量化统计"
+        },
+        timebookMix: [
+          { name: "工作推进", hours: 116.3, pct: 57, delta: "+5.0h", color: "#4F7BFF" },
+          { name: "学习成长", hours: 29.5, pct: 14, delta: "-2.0h", color: "#8B5CF6" },
+          { name: "居家生活", hours: 39.7, pct: 20, delta: "+0.8h", color: "#14B8A6" },
+          { name: "运动休闲", hours: 18.5, pct: 9, delta: "-3.5h", color: "#22C55E" }
+        ],
+        crossInsights: [
+          "运动休闲时长环比回落 3.5 小时，同期日记中「连续久坐腰背僵硬」的记录增加至 6 天。",
+          "两次短途出差虽然工作密集，但傍晚留出 40 分钟步行观景后，当天心情均转回「😄 开心」。"
+        ],
+        dimensions: {
+          work: "完成两轮跨城市协作对接，项目交付稳步推进，但晚间临时加塞沟通偏多。",
+          life: "换季期间经历过一次轻微咽痛，之后重新拾起陈皮白茶与温水习惯。",
+          leisure: "月初陪家人吃了一顿秋蟹家宴，月底补看了两部纪录片。",
+          emotion: "中下旬有两天因沟通节奏不合出现「😤 烦躁」，按以往“先停十秒”原则未发生正面冲突。"
+        },
+        nextActions: [
+          "出差日尽量预留晚间半小时户外步行缓冲，避免工作情绪直接带入睡眠。"
+        ],
+        highlights: [
+          { id: "mh-09-1", date: "2026-09-06", title: "外地出差演示顺利过关，傍晚沿海散步", reason: "重要工作节点落地且情绪舒畅", algoTag: "出差节点", entryId: "d-2026-11-02", pinned: false },
+          { id: "mh-09-2", date: "2026-09-17", title: "中秋家宴与老友聚会，久违放松", reason: "标记重要事件且获家庭高情感支撑", algoTag: "重要事件加权", entryId: "d-2025-11-20", pinned: false },
+          { id: "mh-09-3", date: "2026-09-28", title: "三季度阶段复盘与十月轻量化清单定稿", reason: "篇幅达当月均值 1.5 倍，承前启后", algoTag: "篇幅峰值 1.5x", entryId: "d-2026-11-18", pinned: false }
+        ]
+      },
+      "2026-08": {
+        locked: false,
+        overview: {
+          days: "31 天（全勤）", words: "28,390 字", mood: "😄 开心偏多 · 🥰 兴奋显著",
+          tbHours: "212.0 小时", todoRate: "88%",
+          summary: "8 月是全年活力最高的一个月，高温天里早起慢跑习惯稳定成型，工作与个人探索双线收获明显。",
+          contextNote: "第 2 层上下文：当月 31 篇结构化日概要（约 6,410 字）+ 量化统计"
+        },
+        timebookMix: [
+          { name: "工作推进", hours: 112.0, pct: 53, delta: "-4.0h", color: "#4F7BFF" },
+          { name: "学习成长", hours: 35.0, pct: 16, delta: "+6.0h", color: "#8B5CF6" },
+          { name: "居家生活", hours: 37.0, pct: 18, delta: "+1.1h", color: "#14B8A6" },
+          { name: "运动休闲", hours: 28.0, pct: 13, delta: "+5.5h", color: "#22C55E" }
+        ],
+        crossInsights: [
+          "学习成长与运动休闲合计占比升至 29%，是今年待办完成率最高（88%）且正反馈最密的一个月。"
+        ],
+        dimensions: {
+          work: "节奏张弛有度，集中攻克了一个长期搁置的自动化小需求。",
+          life: "早睡早起执行最佳，凌晨一点后未睡记录仅 1 天。",
+          leisure: "完成了夏末一次短途海岸线自驾散心。",
+          emotion: "整体积极轻快，仅在月底连续大雨闷热天出现一次短暂烦闷。"
+        },
+        nextActions: [
+          "把 8 月验证有效的「早起先做 1 小时难事」模板固化到秋季工作流。"
+        ],
+        highlights: [
+          { id: "mh-08-1", date: "2026-08-09", title: "首次突破晨跑十公里，配速稳定呼吸顺畅", reason: "体能突破与「🥰 兴奋」情绪峰值", algoTag: "情绪峰值", entryId: "d-2026-11-15", pinned: false },
+          { id: "mh-08-2", date: "2026-08-22", title: "夏末海岸线两日短途出游看星空", reason: "旅行游玩标签且重要度评分 5 分", algoTag: "重要事件加权", entryId: "d-2026-11-02", pinned: false }
+        ]
+      }
+    },
+    yearlyReviews: {
+      "2026": {
+        locked: true,
+        unlockDate: "2027-01-01",
+        hint: "2026 自然年尚未结束（目前记录至 11 月）。每年 1 月 1 日自动汇总全年 12 份月度复盘、全年时间簿聚合与专项复盘，生成年度客观复盘与年度高光轴。"
+      },
+      "2025": {
+        locked: false,
+        overview: {
+          days: "365 天（全年无断更）", words: "315,942 字（篇均 866 字）", delta: "较 2024 年篇均增长 +72%",
+          tbHours: "2,496 小时",
+          summary: "2025 年是从「单纯记流水账」转向「深度思考与构建个人工具体系」的分水岭年份。字数与记录深度大幅跃升，情绪稳定性较前两年显著提高。",
+          contextNote: "第 3 层上下文：全年 12 份月度复盘 + 年度高光候选池 + 2025 年度复盘原文"
+        },
+        quarters: [
+          { q: "Q1 春季 · 蓄力梳理", desc: "建立固定四段式写作骨架，开始系统整理日常习惯与阅读清单。" },
+          { q: "Q2 夏季 · 外出与突破", desc: "差旅与跨团队合作增多，首次完整独立做出日常自用的效率工具雏形。" },
+          { q: "Q3 秋季 · 节奏调优", desc: "识别并压缩多线并行损耗，逐步引入夜间阅读与周末运动作为固定回血手段。" },
+          { q: "Q4 冬季 · 沉淀定型", desc: "迎来连续记满两年半节点，总结出「情绪上头前先停十秒」的处事准则。" }
+        ],
+        threeLines: [
+          "工作积累：全年工作模块投入 1,380 小时，成功将高频重复事务工具化、自动化，单日专注深度明显提升。",
+          "生活秩序：全年完成 365 天零断更打卡；居家厨艺、绿植养护与理线收纳成为高频低成本愉悦来源。",
+          "个人成长：全年持续阅读打卡未间断，并在 11 月确立了长期主义记录坐标与来年精简聚焦目标。"
+        ],
+        patterns: [
+          "稳定好习惯（跨 10 个月以上印证）：晚间十一点前复盘记录、户外散步/慢跑、通过整理物理环境快速恢复心流。",
+          "反复出现的老问题（出现在 4 月/7 月/10 月月报）：阶段性贪多同时启动多个分支任务，直接触发肩颈疲惫与效率下滑。"
+        ],
+        anchors: [
+          "守住每日唯一核心主线：任何一天不同时开超过两件重度脑力任务。",
+          "将晚间运动与阅读打卡从「有空再做」固化为日程硬区块。",
+          "继续保持每晚十一点前写三五件事，减少睡前碎片化信息摄入。"
+        ],
+        highlights: [
+          { id: "yh-25-1", date: "2025-02-14", quarter: "Q1", title: "完成四段式个人日记结构升级，平均字数跃上 800+", reason: "写作深度转折里程碑", algoTag: "月轴收敛", entryId: "s-2025-year", pinned: false },
+          { id: "yh-25-2", date: "2025-05-18", quarter: "Q2", title: "首个日常自用效率小工具上线稳定运行", reason: "重要事件标签保送保留", algoTag: "重要事件防漏", entryId: "d-2026-11-19", pinned: true },
+          { id: "yh-25-3", date: "2025-08-12", quarter: "Q3", title: "夏季出差调研与海岸落日长跑十公里", reason: "合并同周差旅节点收敛为单条代表", algoTag: "跨月去重收敛", entryId: "d-2026-11-02", pinned: false },
+          { id: "yh-25-4", date: "2025-11-20", quarter: "Q4", title: "连续写满两年半，与老搭档敲定来年新方向", reason: "节点事件高分加权且情绪治愈", algoTag: "月轴收敛", entryId: "d-2025-11-20", pinned: false },
+          { id: "yh-25-5", date: "2025-12-31", quarter: "Q4", title: "撰写 2025 年度复盘：稳住节奏与情绪留白", reason: "年度复盘专项原文直通入选", algoTag: "重要事件防漏", entryId: "s-2025-year", pinned: false }
+        ]
+      },
+      "2024": {
+        locked: false,
+        overview: {
+          days: "366 天（闰年全勤）", words: "184,106 字（篇均 503 字）", delta: "较 2023 年篇均增长 +27%",
+          tbHours: "2,180 小时",
+          summary: "2024 年是生活烟火气与居住空间感大幅提升的一年，从单纯记工作事务扩展出稳定的下厨、绿植与周末休闲记录。",
+          contextNote: "第 3 层上下文：全年 12 份月度复盘 + 年度高光候选池"
+        },
+        quarters: [
+          { q: "Q1 · 养成习惯", desc: "跨过百日门槛后写作不再需要刻意提醒，成为睡前自然动作。" },
+          { q: "Q2 · 拓展爱好", desc: "开始尝试多道家常慢炖菜谱与阳台绿植布置。" },
+          { q: "Q3 · 暑期出行", desc: "完成一次记忆深刻的山海长途旅行，照片与文字量创上半年新高。" },
+          { q: "Q4 · 居家安顿", desc: "11 月霜降搭好阳台实木花架，生活秩序与情绪明显更稳。" }
+        ],
+        threeLines: [
+          "工作积累：逐步脱离琐碎救火，开始积攒结构化工作经验记录。",
+          "生活秩序：阳台绿植角成型、厨艺从简单凑合升级为周末用心炖煮。",
+          "个人成长：全年 366 天一天未断，文字从三百多字自然长成五百字常规篇幅。"
+        ],
+        patterns: [
+          "稳定习惯：只要当天做了一件具体的小手工或下厨，整天心情评分普遍偏向积极。",
+          "待改进点：遇到连续加班周，文字立刻萎缩回简短流水账。"
+        ],
+        anchors: [
+          "在忙碌周中哪怕只写两百字，也优先留下一句真实的反思感受。"
+        ],
+        highlights: [
+          { id: "yh-24-1", date: "2024-06-25", quarter: "Q2", title: "日记写满整整一周年，累计 366 篇不断更", reason: "重要时间里程碑", algoTag: "重要事件防漏", entryId: "d-2025-11-20", pinned: false },
+          { id: "yh-24-2", date: "2024-11-20", quarter: "Q4", title: "初冬霜降搭好阳台实木花架与绿植角", reason: "高共鸣居家生活记忆点", algoTag: "月轴收敛", entryId: "d-2024-11-20", pinned: false }
+        ]
+      },
+      "2023": {
+        locked: false,
+        overview: {
+          days: "190 天（6 月 25 日起全勤）", words: "75,417 字（篇均 397 字）", delta: "起始元年",
+          tbHours: "未覆盖（时间簿尚未全面启用）",
+          summary: "2023 年 6 月 25 日迈出每日记录第一步，半年间保持零断更，年末布置完成阅读角暖光灯，奠定了后续多年记录的物理与心理底座。",
+          contextNote: "第 3 层上下文：下半年 7 份月度复盘 + 年度高光候选池"
+        },
+        quarters: [
+          { q: "Q2 末 · 启程", desc: "6 月 25 日写下第一篇每日复盘，开启连续记录旅程。" },
+          { q: "Q3 · 坚持", desc: "度过最初三个月磨合期，逐渐适应每日四部分简记结构。" },
+          { q: "Q4 · 仪式感", desc: "11 月安装阅读角落地暖光灯并启动早睡计划，写日记成为期待的夜间时刻。" }
+        ],
+        threeLines: [
+          "记录起步：用 190 天连续记录验证了“每天五分钟也能留住生活”。",
+          "空间布置：落地暖光灯阅读角让晚间专注环境彻底成型。"
+        ],
+        patterns: [
+          "从零开始建立连续习惯的关键在于不求长、先不断更。"
+        ],
+        anchors: [
+          "继续守住每天一篇的最小记录动作。"
+        ],
+        highlights: [
+          { id: "yh-23-1", date: "2023-06-25", quarter: "Q2", title: "写下「人生日记」第一篇记录", reason: "三年半连续记录起点", algoTag: "重要事件防漏", entryId: "d-2023-11-20", pinned: false },
+          { id: "yh-23-2", date: "2023-11-20", quarter: "Q4", title: "阅读角落地暖光灯到位，开启早睡计划", reason: "重要事件高分加权", algoTag: "月轴收敛", entryId: "d-2023-11-20", pinned: false }
+        ]
+      }
+    },
+    importDemo: { step: 1, doneBatch: null }
+  };
+  const heatMap = buildHeatMapData();
+
+  /* DOM 引用 */
+  const mainWrap = document.getElementById("mainWrap");
+  const appFrame = document.getElementById("appFrame");
+  const topbarWrap = document.getElementById("topbarWrap");
+  const slashMenu = document.getElementById("slashMenu");
+  const floatBar = document.getElementById("floatBar");
+  const modalRoot = document.getElementById("modalRoot");
+  const centerModalRoot = document.getElementById("centerModalRoot");
+  const toastRoot = document.getElementById("toastRoot");
+  const imagePickerInput = document.getElementById("imagePickerInput");
+  let slashActiveIdx = 0;
+  let slashRangeInfo = null;
+  let savedSelectionRange = null;
+
+  /* 通用提示条与辅助函数 */
+  let toastTimer = null;
+  function showToast(msg){
+    toastRoot.innerHTML = `<div class="toast">${escHtml(msg)}</div>`;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>{ toastRoot.innerHTML = ""; }, 2600);
+  }
+
+  function getActiveTags(){
+    return state.tags.filter(t => t.enabled !== false);
+  }
+
+  function findMoodTone(label){
+    const mo = state.moods.find(m => m.label === label);
+    return mo ? mo.tone : "#64748B";
+  }
+
+  function tagBadgeHtml(name){
+    const t = state.tags.find(x => x.name === name) || state.tags[0] || TAG_PALETTE[0];
+    const isDark = state.theme === "dark";
+    const bg = isDark ? t.darkTint : t.tint;
+    const fg = isDark ? t.darkInk : t.ink;
+    return `<span class="chip" style="background:${bg};color:${fg}"><span style="width:7px;height:7px;border-radius:50%;background:${t.color}"></span>${escHtml(name)}</span>`;
+  }
+
+  /* 主题与设备同步 */
+  function applyThemeAndDevice(){
+    document.documentElement.setAttribute("data-theme", state.theme);
+    document.documentElement.setAttribute("data-device", state.device);
+    const tBtn = document.getElementById("themeToggleBtn");
+    tBtn.innerHTML = state.theme === "light"
+      ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`
+      : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>`;
+    document.querySelectorAll("[data-device-btn]").forEach(b=>{
+      b.classList.toggle("active", b.dataset.deviceBtn === state.device);
+    });
+    const sp = document.getElementById("syncPillBtn");
+    const st = document.getElementById("syncText");
+    sp.className = "sync-pill " + state.syncMode;
+    st.textContent = state.syncMode === "ok" ? "数据已同步" : (state.syncMode === "syncing" ? "正在保存…" : "连接断开 · 本地暂存");
+  }
+
+  function updateNavActive(){
+    const activeTab = state.view === "editor" ? "home" : state.view;
+    document.querySelectorAll("[data-view]").forEach(b=>{
+      b.classList.toggle("active", b.dataset.view === activeTab);
+    });
+  }
+
+  function navigate(view){
+    hideEditorPopups();
+    state.view = view;
+    updateNavActive();
+    render();
+    appFrame.scrollTop = 0;
+    window.scrollTo({ top: 0 });
+  }
+
+  function openEditorForDate(dateStr, extraTag){
+    const existing = state.entries.find(e => e.kind === "daily" && e.date === dateStr);
+    if(existing){
+      state.editor = {
+        id: existing.id,
+        kind: "daily",
+        date: existing.date,
+        title: existing.title,
+        moods: [...existing.moods],
+        tags: [...existing.tags],
+        html: existing.html,
+        showOtd: false,
+        otdMode: "summary",
+        saveText: `已加载 · ${countWords(existing.html)} 字`,
+        popover: null
+      };
+    } else {
+      const tpl = state.templates[0];
+      const defaultHtml = tpl.sections.map(s => `<h3>${escHtml(s)}</h3><p>1、</p>`).join("");
+      const fallbackTag = getActiveTags()[0] ? getActiveTags()[0].name : "日常记录";
+      const fallbackMood = state.moods[2] ? state.moods[2].label : (state.moods[0] ? state.moods[0].label : "😌 平静");
+      state.editor = {
+        id: null,
+        kind: "daily",
+        date: dateStr,
+        title: "",
+        moods: [fallbackMood],
+        tags: extraTag ? [extraTag] : [fallbackTag],
+        html: defaultHtml,
+        showOtd: false,
+        otdMode: "summary",
+        saveText: "已套用默认模板 · 自动防丢守护中",
+        popover: null
+      };
+    }
+    navigate("editor");
+  }
+
+  function openEditorById(id){
+    const existing = state.entries.find(e => e.id === id);
+    if(!existing) return;
+    state.editor = {
+      id: existing.id,
+      kind: existing.kind,
+      date: existing.date || "2026-11-20",
+      title: existing.title,
+      moods: [...existing.moods],
+      tags: [...existing.tags],
+      html: existing.html,
+      showOtd: false,
+      otdMode: "summary",
+      saveText: `已加载 · ${countWords(existing.html)} 字`,
+      popover: null
+    };
+    navigate("editor");
+  }
+
+  function openNewSpecial(){
+    const tpl = state.templates[1] || state.templates[0];
+    const fallbackMood = state.moods[2] ? state.moods[2].label : (state.moods[0] ? state.moods[0].label : "😌 平静");
+    const specialTag = getActiveTags().find(t => t.name === "年度复盘")?.name || getActiveTags()[0]?.name || "年度复盘";
+    state.editor = {
+      id: null,
+      kind: "special",
+      date: "2026-11-20",
+      title: "",
+      moods: [fallbackMood],
+      tags: [specialTag],
+      html: tpl.sections.map(s => `<h3>${escHtml(s)}</h3><p>1、</p>`).join(""),
+      showOtd: false,
+      otdMode: "summary",
+      saveText: "新专项复盘 · 不绑定单日限制",
+      popover: null
+    };
+    navigate("editor");
+  }
+
+  function buildAiDigest(title, html, dateStr){
+    const raw = stripHtml(html);
+    const shortTitle = (title && title.trim()) ? title.trim().slice(0, 18) : `${dateStr} 生活随记概要`;
+    const aiSummary = raw ? (raw.slice(0, 82) + (raw.length > 82 ? "…" : "")) : "今日已开启记录，待补充具体生活片段。";
+    return { aiShortTitle: shortTitle, aiSummary };
+  }
+
+  function saveCurrentEditor(){
+    const ed = state.editor;
+    const words = countWords(ed.html);
+    if(!ed.title.trim() && words < 3){
+      ed.saveText = `草稿待写 · ${words} 字`;
+      return;
+    }
+    const fallbackMood = state.moods[2] ? state.moods[2].label : (state.moods[0] ? state.moods[0].label : "😌 平静");
+    const fallbackTag = getActiveTags()[0] ? getActiveTags()[0].name : "日常记录";
+    const resolvedTitle = ed.title.trim() || `${ed.date} 日常记录`;
+    const digest = buildAiDigest(resolvedTitle, ed.html, ed.date);
+    const existing = state.entries.find(x => x.id === ed.id || (ed.kind === "daily" && x.kind === "daily" && x.date === ed.date));
+    const payload = {
+      id: ed.id || ((ed.kind === "daily" ? "d-" : "s-") + Date.now()),
+      kind: ed.kind,
+      date: ed.date,
+      title: resolvedTitle,
+      aiShortTitle: digest.aiShortTitle,
+      aiSummary: digest.aiSummary,
+      aiTopics: existing?.aiTopics || [ed.tags[0] || "日常"],
+      aiQuote: existing?.aiQuote || "",
+      aiReady: state.aiConfig.enabled ? true : (existing ? existing.aiReady : false),
+      moods: ed.moods.length ? [...ed.moods] : [fallbackMood],
+      tags: ed.tags.length ? [...ed.tags] : [fallbackTag],
+      html: ed.html
+    };
+    const idx = state.entries.findIndex(x => x.id === payload.id || (payload.kind === "daily" && x.kind === "daily" && x.date === payload.date));
+    if(idx >= 0){
+      state.entries[idx] = payload;
+      ed.id = payload.id;
+    } else {
+      state.entries.unshift(payload);
+      ed.id = payload.id;
+    }
+    if(payload.kind === "daily"){
+      heatMap[payload.date] = {
+        date: payload.date,
+        wc: words,
+        mood: payload.moods[0],
+        title: payload.title,
+        aiShortTitle: payload.aiShortTitle,
+        aiReady: payload.aiReady,
+        realId: payload.id
+      };
+    }
+    ed.saveText = state.aiConfig.enabled ? `已保存并静默更新摘要 · ${words} 字` : `已自动保存 · ${words} 字`;
+    const sb = document.getElementById("editorSaveText");
+    if(sb) sb.textContent = ed.saveText;
+  }
+
+  /* ================== 视图渲染 ================== */
+  function render(){
+    if(state.view === "home") renderHome();
+    else if(state.view === "editor") renderEditor();
+    else if(state.view === "calendar") renderCalendar();
+    else if(state.view === "history") renderHistory();
+    else if(state.view === "stats") renderStats();
+  }
+
+  /* 1. 首页总览与回忆问答 */
+  const QA_SUGGESTIONS = [
+    "我上次去海边出差是什么时候，当时怎么放松的？",
+    "最近感到疲惫或复盘时，我都总结了哪些规律？",
+    "前几年 11 月 20 日我都在忙些什么？"
+  ];
+
+  function runMemoryQa(question){
+    const qText = (question || "").trim();
+    if(!qText) return;
+    if(!state.aiConfig.enabled){
+      showToast("请先在设置中开启模型服务，再使用回忆问答");
+      openSettingsDrawer("ai");
+      return;
+    }
+    state.qa.collapsed = false;
+    state.qa.loading = true;
+    state.qa.messages.push({ role: "user", text: qText });
+    renderHome();
+
+    setTimeout(() => {
+      const stopWords = ["什么","时候","怎么","哪些","我在","我的","最近","上次","前几","一下","都是","当时","的","了","吗","呢"];
+      const tokens = qText.replace(/[？?！!，,。.\s]+/g, " ").split(" ").filter(Boolean);
+      const keywords = [];
+      tokens.forEach(tok => {
+        ["海边","出差","海风","慢跑","阅读","复盘","疲惫","桌面","11-20","11 月 20 日","银杏","花架","早睡","老搭档","暖光灯","涮肉"].forEach(k => {
+          if(tok.includes(k) || qText.includes(k)) keywords.push(k);
+        });
+        if(tok.length >= 2 && !stopWords.includes(tok)) keywords.push(tok);
+      });
+      const uniqKeys = [...new Set(keywords)];
+      const scored = state.entries.map(e => {
+        const plain = `${e.date} ${e.title} ${e.aiShortTitle||""} ${e.aiSummary||""} ${stripHtml(e.html)} ${e.tags.join(" ")} ${e.moods.join(" ")}`;
+        let score = 0;
+        uniqKeys.forEach(k => {
+          if(k === "11 月 20 日" || k === "11-20"){
+            if(e.date.slice(5) === "11-20") score += 4;
+          } else if(plain.includes(k)){
+            score += 2;
+          }
+        });
+        if(qText.includes("规律") || qText.includes("复盘")){
+          if(e.tags.includes("反省总结") || e.tags.includes("年度复盘")) score += 3;
+        }
+        return { entry: e, score };
+      }).filter(x => x.score > 0).sort((a,b) => b.score - a.score);
+
+      const hits = (scored.length ? scored.slice(0, 3) : state.entries.slice(0, 2)).map(x => x.entry);
+      const citeIds = hits.map(h => ({ id: h.id, label: `${h.date} · ${h.aiShortTitle || h.title}` }));
+      const traceSteps = [
+        `1. 目录与摘要筛查（条件：关键词 ${uniqKeys.length ? uniqKeys.slice(0,4).join(" / ") : "近30天活跃记录"}）→ 初筛命中 ${hits.length} 篇`,
+        `2. 指定日期原文精读（只读读取 ${hits.map(h => h.date).join("、")} 正文段落，共 ${hits.reduce((a,b)=>a+countWords(b.html),0)} 字）`,
+        `3. 整理答复并核对日期出处 · 耗时 0.8 秒 · 参考消耗约 1,420 词元`
+      ];
+
+      let answer = "";
+      if(qText.includes("海边") || qText.includes("出差") || qText.includes("海风")){
+        answer = "翻阅过往记录，最近一次去海边出差是在 2026 年 11 月 2 日：\n• 白天与团队对齐了冬季产品清单，现场演示进行得很顺利；\n• 傍晚五点收工后，你沿着海岸线散步四公里吹海风，还拍到橘子海落日，一整天的疲惫一下散掉。";
+      } else if(qText.includes("疲惫") || qText.includes("复盘") || qText.includes("规律")){
+        answer = "从最近的复盘与情绪记录里可以看到两条很稳定的自我调节规律：\n• 节奏上：拖慢进度往往不是事情难，而是同时开了太多分支（2026-11-10 复盘决定每天只锁死最重要的一件事）；\n• 恢复方式：身体发僵时做拉伸泡热水澡，或抽空做十公里慢跑与整理书桌，情绪上头前先停十秒，状态很快就能回暖。";
+      } else if(qText.includes("11 月 20") || qText.includes("11-20") || qText.includes("往年")){
+        answer = "过去三年的 11 月 20 日都留下了很有生活温度的节点记录：\n• 2023 年：安装好落地暖光灯，正式布置完阅读角并开启早睡计划；\n• 2024 年：组装了阳台实木花架，把绿植挪到向阳窗边并试做炖牛腩；\n• 2025 年：写满两年半，晚间整理书架重温旧日记，中午和老搭档敲定了来年方向。";
+      } else {
+        answer = `为你翻查到本地日记库中 ${hits.length} 篇关联度较高的记录：\n` +
+          hits.map(h => `• ${h.date}（${h.moods.join(" ")}）：${h.aiSummary || stripHtml(h.html).slice(0, 72)}`).join("\n") +
+          "\n点击下方出处胶囊即可直接打开对应日记原文。";
+      }
+
+      state.qa.loading = false;
+      state.qa.messages.push({
+        role: "ai",
+        text: answer,
+        traces: traceSteps,
+        traceOpen: false,
+        cites: citeIds
+      });
+      renderHome();
+    }, 360);
+  }
+
+  function renderHome(){
+    const todayWritten = state.entries.find(e => e.kind === "daily" && e.date === "2026-11-20");
+    const otdList = state.entries.filter(e => e.kind === "daily" && e.date.slice(5) === "11-20" && e.date !== "2026-11-20");
+    const aiOn = state.aiConfig.enabled;
+    const activeTags = getActiveTags();
+
+    // 统计年度热力图数据
+    const yr = state.heatYear;
+    const yrStart = new Date(`${yr}-01-01T00:00:00`);
+    const yrEnd = yr === "2026" ? new Date("2026-11-20T00:00:00") : new Date(`${yr}-12-31T00:00:00`);
+    const firstDow = (yrStart.getDay() + 6) % 7; // 周一为 0
+    let cellsHtml = "";
+    for(let i=0;i<firstDow;i++) cellsHtml += `<span class="h-cell empty-pad"></span>`;
+    let yrCount = 0, yrWords = 0;
+    for(let d = new Date(yrStart); d <= yrEnd; d.setDate(d.getDate()+1)){
+      const ds = fmtDate(d);
+      const rec = heatMap[ds];
+      let bg = "var(--heat-0)";
+      let tip = `${ds} · 尚未记录（点击补写）`;
+      if(rec){
+        yrCount++;
+        yrWords += rec.wc;
+        const shownTitle = (aiOn && rec.aiReady && rec.aiShortTitle) ? rec.aiShortTitle : rec.title;
+        tip = `${ds} · ${rec.mood} · ${rec.wc} 字 · ${shownTitle}`;
+        if(state.heatColorBy === "words"){
+          bg = rec.wc > 1300 ? "var(--heat-4)" : rec.wc > 800 ? "var(--heat-3)" : rec.wc > 400 ? "var(--heat-2)" : "var(--heat-1)";
+        } else {
+          bg = findMoodTone(rec.mood);
+        }
+      }
+      cellsHtml += `<button class="h-cell" data-heat-date="${ds}" title="${escHtml(tip)}" style="background:${bg}"></button>`;
+    }
+
+    mainWrap.innerHTML = `
+      <section class="hero-row">
+        <div>
+          <h1 class="hero-title">周五 <span class="hl-date num">11.20</span></h1>
+          <p class="hero-sub">
+            <span>${todayWritten ? `今天已记录 ${countWords(todayWritten.html)} 字，随时可回来继续补充` : "今晚还没有写今天的日记，安静记录一下吧"}</span>
+            <span class="badge-count num">连续坚持 1,245 天 · 累计 85.3 万字</span>
+          </p>
+        </div>
+        <div class="hero-btns">
+          <button class="btn btn-primary" id="writeTodayBtn">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            ${todayWritten ? "继续写今天日记" : "写今天日记"}
+          </button>
+          <button class="btn btn-ghost" id="newSpecialBtn" style="height:48px;border-radius:14px">+ 专项复盘</button>
+        </div>
+      </section>
+
+      <section class="card qa-card" aria-label="回忆问答对话框">
+        <div class="qa-head">
+          <div>
+            <h2 class="qa-title">
+              <span class="ai-badge">✦ 回忆问答</span>
+              <span>问问过去的自己</span>
+            </h2>
+            <div style="font-size:12px;color:var(--ink-3);font-weight:600;margin-top:4px">
+              仅通过只读数据库检索工具翻查过往日记（最多 4 轮调用 · 单次约数分钱），不改动任何记录
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center">
+            ${state.qa.messages.length ? `<button class="btn btn-soft" id="qaClearBtn" style="height:30px;padding:0 10px;font-size:12px">清空对话</button>` : ""}
+            <button class="btn btn-soft" id="qaCollapseBtn" style="height:30px;padding:0 10px;font-size:12px">${state.qa.collapsed ? "展开" : "收起"}</button>
+          </div>
+        </div>
+        ${state.qa.collapsed ? "" : `
+          ${!aiOn ? `
+            <div style="margin-top:12px;padding:12px 14px;border-radius:12px;background:var(--warn-bg);border:1px solid var(--warn-line);color:var(--warn-ink);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;font-size:12.5px;font-weight:700">
+              <span>当前模型服务已关闭，回忆问答与智能摘要已平滑降级，不影响日常写作与检索。</span>
+              <button class="btn btn-dark" id="qaOpenAiCfgBtn" style="height:30px;padding:0 12px;font-size:12px">去开启 / 配置模型服务</button>
+            </div>
+          ` : `
+            <div class="qa-prompts">
+              ${QA_SUGGESTIONS.map(s => `<button class="qa-prompt-pill" data-qa-suggest="${escHtml(s)}">💬 ${escHtml(s)}</button>`).join("")}
+            </div>
+            <div class="qa-input-row">
+              <input id="qaQuestionInput" placeholder="问一件过去发生过的事，例如：我上次去海边出差是哪天？" />
+              <button class="btn btn-primary" id="qaSendBtn" style="height:42px;padding:0 18px;font-size:13.5px;border-radius:12px">${state.qa.loading ? "检索中…" : "向记忆提问"}</button>
+            </div>
+          `}
+          ${state.qa.messages.length || state.qa.loading ? `
+            <div class="qa-thread">
+              ${state.qa.messages.map((msg, mIdx) => msg.role === "user" ? `
+                <div class="qa-msg-user">${escHtml(msg.text)}</div>
+              ` : `
+                <div class="qa-msg-ai">
+                  <div class="qa-trace">
+                    <button class="qa-trace-head" data-toggle-trace="${mIdx}">
+                      <span>🔍 已执行 3 步本地数据库只读工具检索（点击${msg.traceOpen ? "收起" : "查看"}详情）</span>
+                      <span style="color:var(--ink-3)">${msg.traceOpen ? "▲" : "▼"}</span>
+                    </button>
+                    ${msg.traceOpen ? `
+                      <div class="qa-trace-steps">
+                        ${msg.traces.map(st => `<div>${escHtml(st)}</div>`).join("")}
+                      </div>
+                    ` : ""}
+                  </div>
+                  <div class="qa-answer-text">${escHtml(msg.text)}</div>
+                  <div class="qa-cites">
+                    <span style="font-size:12px;font-weight:800;color:var(--ink-3)">原文出处：</span>
+                    ${msg.cites.map(c => `<button class="cite-chip" data-open-id="${escHtml(c.id)}">📄 ${escHtml(c.label)} →</button>`).join("")}
+                  </div>
+                </div>
+              `).join("")}
+              ${state.qa.loading ? `<div class="qa-msg-ai" style="color:var(--ink-3);font-size:13px;font-weight:700">✦ 正在调用本地全文检索与原文精读工具，梳理回答中…</div>` : ""}
+            </div>
+          ` : ""}
+        `}
+      </section>
+
+      <section aria-label="那年今日">
+        <div class="sec-head">
+          <h2 class="sec-title">
+            那年今日 · 还记得吗？
+            <span class="badge-count num">${otdList.length} 篇往年同日</span>
+            ${aiOn ? `<span class="ai-badge">✦ 智能概要已开启</span>` : `<span class="raw-badge">已降级为原文节选</span>`}
+          </h2>
+          <button class="btn btn-soft" id="otdJumpHistoryBtn" style="height:32px;font-size:12px">去历史翻看全部</button>
+        </div>
+        <div class="otd-grid">
+          ${otdList.map(item => {
+            const useAi = aiOn && item.aiReady !== false && item.aiSummary;
+            const headTitle = useAi ? item.aiShortTitle : item.title;
+            const bodyText = useAi ? item.aiSummary : stripHtml(item.html);
+            return `
+            <button class="card lift otd-card" data-open-id="${item.id}">
+              <div style="display:flex;align-items:center;justify-content:space-between;width:100%;gap:6px">
+                <span class="otd-year num">🕰 ${item.date.slice(0,4)} 年的今天</span>
+                <div style="display:flex;align-items:center;gap:6px">
+                  ${useAi ? `<span class="ai-badge">✦ 智能概要</span>` : `<span class="raw-badge">原文节选</span>`}
+                  <span style="font-size:13px;font-weight:700">${escHtml(item.moods.join(" "))}</span>
+                </div>
+              </div>
+              <div style="font-size:16px;font-weight:800;line-height:1.4;color:var(--ink)">${escHtml(headTitle)}</div>
+              <p class="otd-excerpt">${escHtml(bodyText)}</p>
+              <div style="display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:auto">
+                <div style="display:flex;gap:5px;flex-wrap:wrap">${item.tags.map(tagBadgeHtml).join("")}</div>
+                <span class="num" style="font-size:12px;font-weight:700;color:var(--ink-3)">${countWords(item.html)} 字</span>
+              </div>
+            </button>`;
+          }).join("")}
+        </div>
+      </section>
+
+      <section class="card heat-card" aria-label="年度写作热力图">
+        <div class="sec-head" style="margin-bottom:0">
+          <h2 class="sec-title">${yr} 年度足迹热力图</h2>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+            <div class="seg-mini">
+              ${["2026","2025","2024","2023"].map(y => `<button class="${yr===y?"active":""}" data-heat-year="${y}">${y}</button>`).join("")}
+            </div>
+            <div class="seg-mini">
+              <button class="${state.heatColorBy==="words"?"active":""}" data-heat-color="words">按字数</button>
+              <button class="${state.heatColorBy==="mood"?"active":""}" data-heat-color="mood">按心情</button>
+            </div>
+          </div>
+        </div>
+        <div class="kpi-strip">
+          <div class="kpi-mini"><div class="k-label">${yr} 年记录</div><div class="k-val num">${yrCount} 篇</div></div>
+          <div class="kpi-mini"><div class="k-label">${yr} 年字数</div><div class="k-val num">${(yrWords/10000).toFixed(1)} 万字</div></div>
+          <div class="kpi-mini"><div class="k-label">历史总篇数</div><div class="k-val num">1,244 篇</div></div>
+          <div class="kpi-mini"><div class="k-label">最长连续</div><div class="k-val num">1,244 天</div></div>
+        </div>
+        <div class="heat-scroll">
+          <div class="heat-grid">${cellsHtml}</div>
+        </div>
+        <div class="heat-legend">
+          <span>冷暖五档高反差字数色阶 · 悬停查看摘要与字数，点击直达阅读或补写</span>
+          ${state.heatColorBy === "words" ? `
+            <span class="legend-boxes">
+              <i style="background:var(--heat-0)" title="未记录"></i>未记
+              <i style="background:var(--heat-1)" title="1～400 字"></i>1-400
+              <i style="background:var(--heat-2)" title="401～800 字"></i>401-800
+              <i style="background:var(--heat-3)" title="801～1,300 字"></i>801-1300
+              <i style="background:var(--heat-4)" title="1,301 字以上"></i>1301+
+            </span>
+          ` : `
+            <span>绿色开心 · 琥珀兴奋 · 石板灰平静 · 紫疲惫 · 蓝焦虑 · 橙烦躁 · 红生气/低落</span>
+          `}
+        </div>
+      </section>
+
+      <section aria-label="日记标签墙">
+        <div class="sec-head">
+          <h2 class="sec-title">日记标签 <span class="badge-count num">${activeTags.length} 个启用中</span></h2>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <span style="font-size:12px;font-weight:600;color:var(--ink-3)">点击标签筛选历史，或直接带标签记一篇</span>
+            <button class="btn btn-soft" id="homeManageTagsBtn" style="height:32px;font-size:12px">⚙ 管理标签</button>
+          </div>
+        </div>
+        <div class="tags-grid">
+          ${activeTags.map(t => `
+            <div class="card lift tag-wall-card" data-filter-tag="${escHtml(t.name)}">
+              <div class="tag-wall-top">
+                ${tagBadgeHtml(t.name)}
+                <span class="num" style="font-size:13px;font-weight:800;color:var(--ink-3)">${t.count} 篇</span>
+              </div>
+              <div class="tag-wall-foot">
+                <span style="font-size:12px;color:var(--ink-3);font-weight:600">点击查看历史</span>
+                <button class="tag-quick-btn" data-quick-tag="${escHtml(t.name)}">+ 记一篇</button>
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      </section>
+    `;
+
+    document.getElementById("writeTodayBtn").onclick = () => openEditorForDate("2026-11-20");
+    document.getElementById("newSpecialBtn").onclick = openNewSpecial;
+    document.getElementById("otdJumpHistoryBtn").onclick = () => navigate("history");
+    document.getElementById("homeManageTagsBtn").onclick = () => openSettingsDrawer("tags");
+
+    const qaCollapseBtn = document.getElementById("qaCollapseBtn");
+    if(qaCollapseBtn) qaCollapseBtn.onclick = () => { state.qa.collapsed = !state.qa.collapsed; renderHome(); };
+    const qaClearBtn = document.getElementById("qaClearBtn");
+    if(qaClearBtn) qaClearBtn.onclick = () => { state.qa.messages = []; renderHome(); };
+    const qaOpenAiCfgBtn = document.getElementById("qaOpenAiCfgBtn");
+    if(qaOpenAiCfgBtn) qaOpenAiCfgBtn.onclick = () => openSettingsDrawer("ai");
+    const qaSendBtn = document.getElementById("qaSendBtn");
+    const qaInput = document.getElementById("qaQuestionInput");
+    if(qaSendBtn && qaInput){
+      qaSendBtn.onclick = () => runMemoryQa(qaInput.value);
+      qaInput.onkeydown = (e) => { if(e.key === "Enter") runMemoryQa(qaInput.value); };
+    }
+    mainWrap.querySelectorAll("[data-qa-suggest]").forEach(btn => {
+      btn.onclick = () => runMemoryQa(btn.dataset.qaSuggest);
+    });
+    mainWrap.querySelectorAll("[data-toggle-trace]").forEach(btn => {
+      btn.onclick = () => {
+        const idx = Number(btn.dataset.toggleTrace);
+        if(state.qa.messages[idx]){
+          state.qa.messages[idx].traceOpen = !state.qa.messages[idx].traceOpen;
+          renderHome();
+        }
+      };
+    });
+
+    mainWrap.querySelectorAll("[data-open-id]").forEach(el => {
+      el.onclick = () => openEditorById(el.dataset.openId);
+    });
+    mainWrap.querySelectorAll("[data-heat-year]").forEach(el => {
+      el.onclick = () => { state.heatYear = el.dataset.heatYear; renderHome(); };
+    });
+    mainWrap.querySelectorAll("[data-heat-color]").forEach(el => {
+      el.onclick = () => { state.heatColorBy = el.dataset.heatColor; renderHome(); };
+    });
+    mainWrap.querySelectorAll("[data-heat-date]").forEach(el => {
+      el.onclick = () => openEditorForDate(el.dataset.heatDate);
+    });
+    mainWrap.querySelectorAll("[data-filter-tag]").forEach(el => {
+      el.onclick = (e) => {
+        if(e.target.closest("[data-quick-tag]")) return;
+        state.histTag = el.dataset.filterTag;
+        navigate("history");
+      };
+    });
+    mainWrap.querySelectorAll("[data-quick-tag]").forEach(el => {
+      el.onclick = (e) => {
+        e.stopPropagation();
+        openEditorForDate("2026-11-20", el.dataset.quickTag);
+      };
+    });
+  }
+
+  /* 2. 沉浸式居中写作页 */
+  function renderEditor(){
+    const ed = state.editor;
+    const words = countWords(ed.html);
+    const mdSuffix = ed.date ? ed.date.slice(5) : "11-20";
+    const otdMatches = state.entries.filter(e => e.kind === "daily" && e.date.slice(5) === mdSuffix && e.date !== ed.date);
+
+    mainWrap.innerHTML = `
+      <div class="editor-shell">
+        <div class="editor-main-col">
+          <div class="editor-toolbar">
+            <div style="display:flex;align-items:center;gap:8px">
+              <button class="btn btn-ghost" id="edBackBtn" style="height:34px;padding:0 12px">← 返回</button>
+              <span class="save-badge"><span class="sync-dot" style="color:var(--ok-dot)"></span><span id="editorSaveText" class="num">${escHtml(ed.saveText)}</span></span>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;position:relative">
+              <button class="btn btn-soft" id="edTplBtn" style="height:34px;padding:0 12px">🧩 套用模板</button>
+              <button class="btn ${ed.showOtd ? "btn-dark" : "btn-ghost"}" id="edOtdBtn" style="height:34px;padding:0 12px">🕰 那年今日 (${otdMatches.length})</button>
+              <button class="btn btn-ghost" id="edVerBtn" style="height:34px;padding:0 12px">🕒 历史版本</button>
+              <button class="btn btn-primary" id="edSaveBtn" style="height:34px;padding:0 16px;font-size:13px;border-radius:10px">立即保存</button>
+            </div>
+          </div>
+
+          <article class="paper-card paper-canvas">
+            <div class="paper-meta-top">
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <span class="chip" style="background:var(--accent-soft);color:var(--ink)">${ed.kind === "daily" ? "📔 每日日记" : "📌 专项复盘"}</span>
+                <label class="date-input-pill">
+                  <span>${ed.kind === "daily" ? "日期" : "记录日期"}</span>
+                  <input type="date" id="edDateInput" value="${ed.date}">
+                </label>
+              </div>
+              <span class="badge-count num" id="edWordCountPill">正文 ${words} 字</span>
+            </div>
+
+            <input class="doc-title-input" id="edTitleInput" value="${escHtml(ed.title)}" placeholder="用一句话概括今天（可空，展示时自动带日期）…">
+
+            <div class="meta-chips-bar" id="metaChipsBar">
+              ${ed.moods.map(m => `<button class="chip" data-remove-mood="${escHtml(m)}" title="点击移除" style="background:var(--surface-2);border:1px solid var(--border);color:var(--ink)">${escHtml(m)} ×</button>`).join("")}
+              <button class="add-meta-btn" id="openMoodPopBtn">+ 心情</button>
+              <span style="width:1px;height:16px;background:var(--border);margin:0 4px"></span>
+              ${ed.tags.map(t => `<span style="display:inline-flex;align-items:center;gap:2px">${tagBadgeHtml(t)}<button data-remove-tag="${escHtml(t)}" style="border:0;background:transparent;color:var(--ink-3);font-size:12px;padding:0 4px" title="移除标签">×</button></span>`).join("")}
+              <button class="add-meta-btn" id="openTagPopBtn">+ 标签</button>
+              <div id="metaPopoverMount"></div>
+            </div>
+
+            <div class="editor-blocks" id="editorCanvas" contenteditable="true" spellcheck="false">${ed.html}</div>
+
+            <div class="editor-bottom-bar">
+              <div class="shortcut-tip">
+                <span>输入 <span class="kbd">/</span> 呼出块菜单</span>
+                <span>行首 <span class="kbd">### </span> 标题</span>
+                <span><span class="kbd">- </span> 列表</span>
+                <span><span class="kbd">&gt; </span> 引用</span>
+                <span>选中文字浮出格式条 · 支持直接粘贴图片</span>
+              </div>
+              <button class="btn btn-soft" id="edInsertImgBtn" style="height:30px;padding:0 10px;font-size:12px">🖼 插入本地图片</button>
+            </div>
+          </article>
+        </div>
+
+        ${ed.showOtd ? `
+          <aside class="card otd-drawer" aria-label="那年今日对照阅读">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+              <div style="font-size:16px;font-weight:800">🕰 那年今日 (${mdSuffix})</div>
+              <button class="icon-btn" id="closeOtdBtn" style="width:30px;height:30px;border-radius:9px">✕</button>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;flex-wrap:wrap">
+              <span style="font-size:12px;color:var(--ink-3)">边对照往年同日回忆，边写今天</span>
+              ${state.aiConfig.enabled ? `
+                <div class="mini-toggle">
+                  <button class="${ed.otdMode==="summary"?"active":""}" data-otd-mode="summary">✦ 智能概要</button>
+                  <button class="${ed.otdMode==="raw"?"active":""}" data-otd-mode="raw">查看原文</button>
+                </div>
+              ` : `<span class="raw-badge">已降级为原文</span>`}
+            </div>
+            ${otdMatches.length ? otdMatches.map(m => {
+              const showAi = state.aiConfig.enabled && ed.otdMode === "summary" && m.aiReady !== false && m.aiSummary;
+              return `
+              <div class="otd-drawer-item">
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:800">
+                  <span class="num">${m.date}</span>
+                  <div style="display:flex;align-items:center;gap:6px">
+                    ${showAi ? `<span class="ai-badge">✦ 概要</span>` : `<span class="raw-badge">原文</span>`}
+                    <span>${escHtml(m.moods.join(" "))}</span>
+                  </div>
+                </div>
+                <div style="font-size:14px;font-weight:800;margin-top:6px">${escHtml(showAi ? m.aiShortTitle : m.title)}</div>
+                <div class="otd-drawer-body">${escHtml(showAi ? m.aiSummary : stripHtml(m.html))}</div>
+                <div style="margin-top:8px;display:flex;justify-content:flex-end">
+                  <button class="btn btn-soft" data-open-id="${escHtml(m.id)}" style="height:26px;padding:0 9px;font-size:11.5px">打开该篇 →</button>
+                </div>
+              </div>`;
+            }).join("") : `<div class="otd-drawer-item" style="color:var(--ink-3);font-size:13px">历史上这一天还没有记录。</div>`}
+          </aside>
+        ` : ""}
+      </div>
+    `;
+
+    const canvas = document.getElementById("editorCanvas");
+    const titleInput = document.getElementById("edTitleInput");
+    const dateInput = document.getElementById("edDateInput");
+
+    document.getElementById("edBackBtn").onclick = () => { saveCurrentEditor(); navigate("home"); };
+    document.getElementById("edSaveBtn").onclick = () => { saveCurrentEditor(); showToast("已保存至本地与服务器"); };
+    document.getElementById("edOtdBtn").onclick = () => {
+      ed.html = canvas.innerHTML;
+      ed.showOtd = !ed.showOtd;
+      renderEditor();
+    };
+    const closeOtdBtn = document.getElementById("closeOtdBtn");
+    if(closeOtdBtn) closeOtdBtn.onclick = () => { ed.html = canvas.innerHTML; ed.showOtd = false; renderEditor(); };
+    mainWrap.querySelectorAll("[data-otd-mode]").forEach(b => {
+      b.onclick = () => { ed.html = canvas.innerHTML; ed.otdMode = b.dataset.otdMode; renderEditor(); };
+    });
+    mainWrap.querySelectorAll(".otd-drawer [data-open-id]").forEach(b => {
+      b.onclick = () => { saveCurrentEditor(); openEditorById(b.dataset.openId); };
+    });
+
+    dateInput.onchange = () => {
+      ed.html = canvas.innerHTML;
+      if(ed.kind === "daily"){
+        const clash = state.entries.find(e => e.kind === "daily" && e.date === dateInput.value && e.id !== ed.id);
+        if(clash){
+          showToast(`${dateInput.value} 已有日记，已自动切换打开该日继续编辑`);
+          openEditorForDate(dateInput.value);
+          return;
+        }
+      }
+      ed.date = dateInput.value;
+      saveCurrentEditor();
+      renderEditor();
+    };
+
+    titleInput.oninput = () => {
+      ed.title = titleInput.value;
+      ed.saveText = "正在保存…";
+      document.getElementById("editorSaveText").textContent = ed.saveText;
+      scheduleAutoSave();
+    };
+
+    /* 心情与标签增删弹出 */
+    document.getElementById("openMoodPopBtn").onclick = () => { ed.html = canvas.innerHTML; ed.popover = ed.popover === "mood" ? null : "mood"; renderEditorPopover(); };
+    document.getElementById("openTagPopBtn").onclick = () => { ed.html = canvas.innerHTML; ed.popover = ed.popover === "tag" ? null : "tag"; renderEditorPopover(); };
+    document.getElementById("edTplBtn").onclick = () => { ed.html = canvas.innerHTML; ed.popover = ed.popover === "template" ? null : "template"; renderEditorPopover(); };
+    document.getElementById("edVerBtn").onclick = () => { ed.html = canvas.innerHTML; ed.popover = ed.popover === "versions" ? null : "versions"; renderEditorPopover(); };
+
+    mainWrap.querySelectorAll("[data-remove-mood]").forEach(b => {
+      b.onclick = () => { ed.html = canvas.innerHTML; ed.moods = ed.moods.filter(x => x !== b.dataset.removeMood); saveCurrentEditor(); renderEditor(); };
+    });
+    mainWrap.querySelectorAll("[data-remove-tag]").forEach(b => {
+      b.onclick = () => { ed.html = canvas.innerHTML; ed.tags = ed.tags.filter(x => x !== b.dataset.removeTag); saveCurrentEditor(); renderEditor(); };
+    });
+
+    document.getElementById("edInsertImgBtn").onclick = () => {
+      saveCurrentSelection(canvas);
+      imagePickerInput.click();
+    };
+
+    bindRichEditor(canvas);
+    renderEditorPopover();
+  }
+
+  function renderEditorPopover(){
+    const mount = document.getElementById("metaPopoverMount");
+    if(!mount) return;
+    const ed = state.editor;
+    if(!ed.popover){ mount.innerHTML = ""; return; }
+    if(ed.popover === "mood"){
+      mount.innerHTML = `
+        <div class="popover-panel">
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:800">
+            <span>选择今日心情（可多选）</span>
+            <button id="closePopBtn" style="border:0;background:transparent;font-size:14px">✕</button>
+          </div>
+          <div class="popover-grid">
+            ${state.moods.map(m => `<button class="pick-opt ${ed.moods.includes(m.label)?"selected":""}" data-pick-mood="${escHtml(m.label)}">${escHtml(m.label)}</button>`).join("")}
+          </div>
+        </div>`;
+      mount.querySelectorAll("[data-pick-mood]").forEach(b => {
+        b.onclick = () => {
+          const val = b.dataset.pickMood;
+          ed.moods = ed.moods.includes(val) ? ed.moods.filter(x => x !== val) : [...ed.moods, val];
+          saveCurrentEditor();
+          renderEditor();
+        };
+      });
+    } else if(ed.popover === "tag"){
+      mount.innerHTML = `
+        <div class="popover-panel">
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:800">
+            <span>选择分类标签（可多选）</span>
+            <button id="closePopBtn" style="border:0;background:transparent;font-size:14px">✕</button>
+          </div>
+          <div class="popover-grid">
+            ${getActiveTags().map(t => `<button class="pick-opt ${ed.tags.includes(t.name)?"selected":""}" data-pick-tag="${escHtml(t.name)}">${escHtml(t.name)}</button>`).join("")}
+          </div>
+        </div>`;
+      mount.querySelectorAll("[data-pick-tag]").forEach(b => {
+        b.onclick = () => {
+          const val = b.dataset.pickTag;
+          ed.tags = ed.tags.includes(val) ? ed.tags.filter(x => x !== val) : [...ed.tags, val];
+          saveCurrentEditor();
+          renderEditor();
+        };
+      });
+    } else if(ed.popover === "template"){
+      mount.innerHTML = `
+        <div class="popover-panel" style="right:0;left:auto;width:340px">
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:800;margin-bottom:8px">
+            <span>插入写作分段模板</span>
+            <button id="closePopBtn" style="border:0;background:transparent;font-size:14px">✕</button>
+          </div>
+          ${state.templates.map(tpl => `
+            <button data-apply-tpl="${tpl.id}" style="width:100%;text-align:left;padding:10px 12px;margin-bottom:6px;border-radius:12px;border:1px solid var(--border);background:var(--surface-hover)">
+              <div style="font-size:13px;font-weight:800">${escHtml(tpl.name)}</div>
+              <div style="font-size:11px;color:var(--ink-3);margin-top:3px">${tpl.sections.map(escHtml).join(" · ")}</div>
+            </button>
+          `).join("")}
+        </div>`;
+      mount.querySelectorAll("[data-apply-tpl]").forEach(b => {
+        b.onclick = () => {
+          const tpl = state.templates.find(x => x.id === b.dataset.applyTpl);
+          if(tpl){
+            ed.html += tpl.sections.map(s => `<h3>${escHtml(s)}</h3><p>1、</p>`).join("");
+            ed.popover = null;
+            saveCurrentEditor();
+            renderEditor();
+            showToast(`已插入「${tpl.name}」分段骨架`);
+          }
+        };
+      });
+    } else if(ed.popover === "versions"){
+      mount.innerHTML = `
+        <div class="popover-panel" style="right:0;left:auto;width:320px">
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:800;margin-bottom:8px">
+            <span>防丢历史快照（最近保留 10 份）</span>
+            <button id="closePopBtn" style="border:0;background:transparent;font-size:14px">✕</button>
+          </div>
+          <div class="sub-card" style="padding:10px 12px;margin-bottom:8px">
+            <div style="font-size:12px;font-weight:800">23:28 · 自动草稿快照</div>
+            <div style="font-size:11px;color:var(--ink-3);margin-top:2px">较当前版本无内容缺失 · 可随时一键恢复</div>
+          </div>
+          <div class="sub-card" style="padding:10px 12px;margin-bottom:0">
+            <div style="font-size:12px;font-weight:800">23:15 · 刚打开时基线</div>
+            <div style="font-size:11px;color:var(--ink-3);margin-top:2px">若误删整段可直接从此基线找回</div>
+          </div>
+        </div>`;
+    }
+    const cb = document.getElementById("closePopBtn");
+    if(cb) cb.onclick = () => { ed.popover = null; renderEditorPopover(); };
+  }
+
+  let autoSaveTimer = null;
+  function scheduleAutoSave(){
+    clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(() => { saveCurrentEditor(); }, 450);
+  }
+
+  /* 编辑器斜杠菜单、快捷语法、划词工具条、图片插入绑定 */
+  function saveCurrentSelection(canvas){
+    const sel = window.getSelection();
+    if(sel && sel.rangeCount > 0 && canvas.contains(sel.anchorNode)){
+      savedSelectionRange = sel.getRangeAt(0).cloneRange();
+    }
+  }
+
+  function insertHtmlAtSavedCursor(canvas, htmlStr){
+    canvas.focus();
+    const sel = window.getSelection();
+    if(savedSelectionRange && canvas.contains(savedSelectionRange.startContainer)){
+      sel.removeAllRanges();
+      sel.addRange(savedSelectionRange);
+    }
+    document.execCommand("insertHTML", false, htmlStr);
+    state.editor.html = canvas.innerHTML;
+    refreshEditorWordCount(canvas);
+    scheduleAutoSave();
+  }
+
+  function refreshEditorWordCount(canvas){
+    state.editor.html = canvas.innerHTML;
+    const wc = countWords(state.editor.html);
+    const pill = document.getElementById("edWordCountPill");
+    if(pill) pill.textContent = `正文 ${wc} 字`;
+  }
+
+  function hideEditorPopups(){
+    slashMenu.classList.add("hidden");
+    floatBar.classList.add("hidden");
+  }
+
+  function bindRichEditor(canvas){
+    canvas.addEventListener("input", () => {
+      refreshEditorWordCount(canvas);
+      const sb = document.getElementById("editorSaveText");
+      if(sb) sb.textContent = "正在保存…";
+      scheduleAutoSave();
+
+      // 1. 快捷符号识别（行首 ###  / -  / > ）
+      const sel = window.getSelection();
+      if(sel && sel.rangeCount){
+        const node = sel.anchorNode;
+        if(node && node.nodeType === 3){
+          const txt = node.textContent;
+          const off = sel.anchorOffset;
+          const before = txt.slice(0, off);
+          if(before === "### "){
+            node.textContent = txt.slice(4);
+            document.execCommand("formatBlock", false, "H3");
+            return;
+          } else if(before === "## "){
+            node.textContent = txt.slice(3);
+            document.execCommand("formatBlock", false, "H2");
+            return;
+          } else if(before === "- "){
+            node.textContent = txt.slice(2);
+            document.execCommand("insertUnorderedList", false);
+            return;
+          } else if(before === "> "){
+            node.textContent = txt.slice(2);
+            document.execCommand("formatBlock", false, "BLOCKQUOTE");
+            return;
+          }
+          // 2. 斜杠命令识别（只要光标前刚输入 / 且处于空位或空格后）
+          if(before.endsWith("/") && (before.length === 1 || /\s/.test(before[before.length-2]))){
+            openSlashMenu(sel, node, off, canvas);
+            return;
+          }
+        }
+      }
+      if(!slashMenu.classList.contains("hidden")){
+        slashMenu.classList.add("hidden");
+      }
+    });
+
+    canvas.addEventListener("keydown", (e) => {
+      if(!slashMenu.classList.contains("hidden")){
+        if(e.key === "ArrowDown"){ e.preventDefault(); slashActiveIdx = (slashActiveIdx + 1) % SLASH_COMMANDS.length; renderSlashItems(canvas); }
+        else if(e.key === "ArrowUp"){ e.preventDefault(); slashActiveIdx = (slashActiveIdx - 1 + SLASH_COMMANDS.length) % SLASH_COMMANDS.length; renderSlashItems(canvas); }
+        else if(e.key === "Enter"){ e.preventDefault(); execSlashCommand(SLASH_COMMANDS[slashActiveIdx].key, canvas); }
+        else if(e.key === "Escape"){ e.preventDefault(); slashMenu.classList.add("hidden"); }
+      }
+    });
+
+    canvas.addEventListener("mouseup", () => showFloatBarIfSelected(canvas));
+    canvas.addEventListener("keyup", () => showFloatBarIfSelected(canvas));
+
+    // 支持直接粘贴剪贴板图片
+    canvas.addEventListener("paste", (e) => {
+      const items = (e.clipboardData && e.clipboardData.items) || [];
+      for(const it of items){
+        if(it.type.startsWith("image/")){
+          e.preventDefault();
+          const file = it.getAsFile();
+          const reader = new FileReader();
+          reader.onload = () => {
+            saveCurrentSelection(canvas);
+            insertHtmlAtSavedCursor(canvas, `<div class="img-block" contenteditable="false"><img src="${reader.result}" alt="日记配图"><div class="img-caption" contenteditable="true">点击填写图片说明</div></div><p></p>`);
+            showToast("已将剪贴板图片插入日记正文");
+          };
+          reader.readAsDataURL(file);
+          return;
+        }
+      }
+    });
+  }
+
+  function openSlashMenu(sel, textNode, offset, canvas){
+    const range = sel.getRangeAt(0).cloneRange();
+    slashRangeInfo = { textNode, offset };
+    const rect = range.getBoundingClientRect();
+    let left = Math.min(rect.left || 240, window.innerWidth - 270);
+    let top = (rect.bottom || 240) + 8;
+    if(top + 320 > window.innerHeight) top = Math.max(20, (rect.top || 300) - 320);
+    slashMenu.style.left = left + "px";
+    slashMenu.style.top = top + "px";
+    slashActiveIdx = 0;
+    renderSlashItems(canvas);
+    slashMenu.classList.remove("hidden");
+  }
+
+  function renderSlashItems(canvas){
+    slashMenu.innerHTML = `<div class="slash-menu-head">插入或切换块类型（↑↓ 选，回车确认）</div>` +
+      SLASH_COMMANDS.map((c, idx) => `
+        <button class="slash-item ${idx===slashActiveIdx?"active":""}" data-slash-key="${c.key}">
+          <span class="slash-icon">${c.icon}</span>
+          <span>
+            <div class="slash-name">${escHtml(c.name)}</div>
+            <div class="slash-desc">${escHtml(c.desc)}</div>
+          </span>
+        </button>
+      `).join("");
+    slashMenu.querySelectorAll("[data-slash-key]").forEach(btn => {
+      btn.onmousedown = (e) => { e.preventDefault(); execSlashCommand(btn.dataset.slashKey, canvas); };
+    });
+  }
+
+  function execSlashCommand(key, canvas){
+    slashMenu.classList.add("hidden");
+    // 删除触发的斜杠字符
+    if(slashRangeInfo && slashRangeInfo.textNode && slashRangeInfo.textNode.parentNode){
+      const tn = slashRangeInfo.textNode;
+      const idx = slashRangeInfo.offset - 1;
+      if(idx >= 0 && tn.textContent[idx] === "/"){
+        tn.textContent = tn.textContent.slice(0, idx) + tn.textContent.slice(idx + 1);
+        const r = document.createRange();
+        r.setStart(tn, idx);
+        r.collapse(true);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(r);
+        savedSelectionRange = r.cloneRange();
+      }
+    }
+    canvas.focus();
+    if(key === "h3") document.execCommand("formatBlock", false, "H3");
+    else if(key === "h2") document.execCommand("formatBlock", false, "H2");
+    else if(key === "p") document.execCommand("formatBlock", false, "P");
+    else if(key === "ol") document.execCommand("insertOrderedList", false);
+    else if(key === "ul") document.execCommand("insertUnorderedList", false);
+    else if(key === "quote") document.execCommand("formatBlock", false, "BLOCKQUOTE");
+    else if(key === "code") insertHtmlAtSavedCursor(canvas, `<pre><code>// 在此输入代码或命令记录</code></pre><p></p>`);
+    else if(key === "hr") insertHtmlAtSavedCursor(canvas, `<hr><p></p>`);
+    else if(key === "todo") insertHtmlAtSavedCursor(canvas, `<div class="todo-block"><input type="checkbox" onclick="this.parentElement.classList.toggle('done',this.checked)"><span class="todo-text" contenteditable="true">待办事项内容</span></div><p></p>`);
+    else if(key === "img-demo"){
+      const svg = encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="800" height="360"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FFE8A3"/><stop offset="55%" stop-color="#FFD480"/><stop offset="100%" stop-color="#F8B488"/></linearGradient></defs><rect width="800" height="360" fill="url(#g)"/><circle cx="620" cy="110" r="56" fill="#FFF7D6" opacity="0.85"/><path d="M0 280 Q210 210 420 265 T800 245 L800 360 L0 360 Z" fill="#2A3447" opacity="0.85"/><text x="48" y="325" font-family="sans-serif" font-size="22" font-weight="bold" fill="#FFF7E6">傍晚江边落日散步 · 本地原图随笔演示</text></svg>`);
+      insertHtmlAtSavedCursor(canvas, `<div class="img-block" contenteditable="false"><img src="data:image/svg+xml,${svg}" alt="示例配图"><div class="img-caption" contenteditable="true">本地配图示例：支持直接复制截图粘贴或选取本地照片上传至绿联存储</div></div><p></p>`);
+    }
+    else if(key === "img-local") imagePickerInput.click();
+
+    refreshEditorWordCount(canvas);
+    scheduleAutoSave();
+  }
+
+  function showFloatBarIfSelected(canvas){
+    const sel = window.getSelection();
+    if(!sel || sel.isCollapsed || !sel.toString().trim() || !canvas.contains(sel.anchorNode)){
+      floatBar.classList.add("hidden");
+      return;
+    }
+    savedSelectionRange = sel.getRangeAt(0).cloneRange();
+    const rect = savedSelectionRange.getBoundingClientRect();
+    floatBar.style.left = Math.max(12, Math.min(window.innerWidth - 260, rect.left + rect.width/2 - 115)) + "px";
+    floatBar.style.top = Math.max(10, rect.top - 42) + "px";
+    floatBar.classList.remove("hidden");
+  }
+
+  floatBar.querySelectorAll("[data-fmt]").forEach(btn => {
+    btn.onmousedown = (e) => {
+      e.preventDefault();
+      const canvas = document.getElementById("editorCanvas");
+      if(!canvas) return;
+      if(savedSelectionRange){
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(savedSelectionRange);
+      }
+      const f = btn.dataset.fmt;
+      if(f === "bold") document.execCommand("bold");
+      else if(f === "italic") document.execCommand("italic");
+      else if(f === "strike") document.execCommand("strikeThrough");
+      else if(f === "highlight"){
+        const txt = window.getSelection().toString();
+        document.execCommand("insertHTML", false, `<mark>${escHtml(txt)}</mark>`);
+      }
+      floatBar.classList.add("hidden");
+      refreshEditorWordCount(canvas);
+      scheduleAutoSave();
+    };
+  });
+
+  imagePickerInput.onchange = () => {
+    const file = imagePickerInput.files && imagePickerInput.files[0];
+    const canvas = document.getElementById("editorCanvas");
+    if(!file || !canvas) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      insertHtmlAtSavedCursor(canvas, `<div class="img-block" contenteditable="false"><img src="${reader.result}" alt="本地上传图片"><div class="img-caption" contenteditable="true">${escHtml(file.name)}</div></div><p></p>`);
+      showToast(`已插入本地图片：${file.name}`);
+    };
+    reader.readAsDataURL(file);
+    imagePickerInput.value = "";
+  };
+
+  /* 3. 日历视图 */
+  function renderCalendar(){
+    const y = state.calYear, m = state.calMonth;
+    const first = new Date(y, m, 1);
+    const startOffset = (first.getDay() + 6) % 7;
+    const gridStart = new Date(y, m, 1 - startOffset);
+    const aiOn = state.aiConfig.enabled;
+    const defaultTag = state.tags[0] ? state.tags[0].name : "日常记录";
+    let cells = "";
+    for(let i=0;i<42;i++){
+      const d = new Date(gridStart);
+      d.setDate(gridStart.getDate() + i);
+      const ds = fmtDate(d);
+      const isCur = d.getMonth() === m;
+      const isToday = ds === "2026-11-20";
+      const real = state.entries.find(e => e.kind === "daily" && e.date === ds);
+      const rec = real ? {
+        date: ds,
+        mood: real.moods[0] || "😌 平静",
+        title: real.title,
+        aiShortTitle: real.aiShortTitle,
+        aiReady: real.aiReady !== false,
+        wc: countWords(real.html),
+        tags: real.tags
+      } : (heatMap[ds] ? { ...heatMap[ds], tags: [defaultTag] } : null);
+      const tObj = rec ? (state.tags.find(x=>x.name===rec.tags[0]) || state.tags[0] || TAG_PALETTE[0]) : null;
+      const tColor = tObj ? tObj.color : "";
+      const hasAiTitle = rec && aiOn && rec.aiReady && rec.aiShortTitle;
+      const needRecalc = rec && aiOn && !rec.aiReady;
+      const shownTitle = hasAiTitle ? rec.aiShortTitle : (rec ? rec.title : "");
+      cells += `
+        <div class="cal-cell ${isCur?"":"other-month"} ${isToday?"today":""}" data-cal-date="${ds}" role="button" tabindex="0">
+          <div class="cal-cell-top">
+            <span class="num">${d.getDate()}</span>
+            <span style="display:inline-flex;align-items:center;gap:4px">
+              ${hasAiTitle ? `<span title="智能短标题" style="color:var(--ai-ink);font-size:11px;font-weight:900">✦</span>` : ""}
+              <span>${rec ? escHtml(rec.mood.split(" ")[0]) : ""}</span>
+            </span>
+          </div>
+          ${rec ? `
+            <div class="cal-cell-title">${escHtml(shownTitle)}</div>
+            <div class="cal-cell-foot">
+              ${needRecalc ? `
+                <button class="cal-recalc-btn" data-recalc-date="${ds}" title="按需补算这一天的模型概要">✦ 补算概要</button>
+              ` : `
+                <span style="display:inline-flex;align-items:center;gap:4px"><i style="width:6px;height:6px;border-radius:50%;background:${tColor};display:inline-block"></i>${escHtml(rec.tags[0]||defaultTag)}</span>
+              `}
+              <span class="num">${rec.wc}字</span>
+            </div>
+          ` : `<div class="cal-empty-hint">+ 补写这天</div>`}
+        </div>`;
+    }
+
+    mainWrap.innerHTML = `
+      <div class="cal-head">
+        <div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <h1 style="margin:0;font-size:32px;font-weight:900;letter-spacing:-.02em" class="num">${y} 年 ${m+1} 月</h1>
+            ${aiOn ? `<span class="ai-badge">✦ 格子展示智能短标题</span>` : `<span class="raw-badge">已降级为原标题</span>`}
+          </div>
+          <div style="font-size:13px;color:var(--ink-3);font-weight:600;margin-top:4px">点击任意日期格直接阅读、续写或补写日记；未总结日期可点「✦ 补算概要」按需生成</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn btn-ghost" id="calPrevBtn">← 上个月</button>
+          <button class="btn btn-soft" id="calTodayBtn">回到本月</button>
+          <button class="btn btn-ghost" id="calNextBtn">下个月 →</button>
+        </div>
+      </div>
+      <div class="card cal-card">
+        <div class="cal-weekdays"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
+        <div class="cal-grid">${cells}</div>
+      </div>
+    `;
+
+    document.getElementById("calPrevBtn").onclick = () => {
+      if(state.calMonth === 0){ state.calYear--; state.calMonth = 11; } else state.calMonth--;
+      renderCalendar();
+    };
+    document.getElementById("calNextBtn").onclick = () => {
+      if(state.calMonth === 11){ state.calYear++; state.calMonth = 0; } else state.calMonth++;
+      renderCalendar();
+    };
+    document.getElementById("calTodayBtn").onclick = () => { state.calYear = 2026; state.calMonth = 10; renderCalendar(); };
+    mainWrap.querySelectorAll("[data-recalc-date]").forEach(btn => {
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        const ds = btn.dataset.recalcDate;
+        const real = state.entries.find(x => x.kind === "daily" && x.date === ds);
+        if(real){
+          real.aiReady = true;
+          if(!real.aiShortTitle) real.aiShortTitle = real.title.slice(0, 16);
+        }
+        if(heatMap[ds]){
+          heatMap[ds].aiReady = true;
+          if(!heatMap[ds].aiShortTitle) heatMap[ds].aiShortTitle = (real && real.aiShortTitle) || "完成当天核心事件记录，心态平稳";
+        }
+        showToast(`✦ 已为 ${ds} 按需生成并缓存智能概要`);
+        renderCalendar();
+      };
+    });
+    mainWrap.querySelectorAll("[data-cal-date]").forEach(b => {
+      b.onclick = () => openEditorForDate(b.dataset.calDate);
+    });
+  }
+
+  /* 4. 历史与全文检索 */
+  function highlightText(text, q){
+    const safe = escHtml(text);
+    if(!q) return safe;
+    const re = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi");
+    return safe.replace(re, m => `<mark class="search-hl">${m}</mark>`);
+  }
+
+  function getDateRangeForPreset(preset){
+    if(preset === "7d") return { start: "2026-11-14", end: "2026-11-20" };
+    if(preset === "30d") return { start: "2026-10-22", end: "2026-11-20" };
+    if(preset === "month") return { start: "2026-11-01", end: "2026-11-30" };
+    if(preset === "thisYear") return { start: "2026-01-01", end: "2026-12-31" };
+    if(preset === "lastYear") return { start: "2025-01-01", end: "2025-12-31" };
+    if(preset === "2024") return { start: "2024-01-01", end: "2024-12-31" };
+    if(preset === "2023") return { start: "2023-01-01", end: "2023-12-31" };
+    if(preset === "custom") return { start: state.histStart, end: state.histEnd };
+    return { start: "", end: "" };
+  }
+
+  function getFilteredHistoryEntries(){
+    const q = state.histQuery.trim().toLowerCase();
+    const range = getDateRangeForPreset(state.histPreset);
+    return state.entries.filter(e => {
+      if(state.histKind !== "all" && e.kind !== state.histKind) return false;
+      if(range.start && e.date < range.start) return false;
+      if(range.end && e.date > range.end) return false;
+      if(state.histTag !== "all" && !e.tags.includes(state.histTag)) return false;
+      if(state.histMood !== "all" && !e.moods.includes(state.histMood)) return false;
+      if(q){
+        const hay = `${e.date} ${e.title} ${e.aiShortTitle||""} ${e.aiSummary||""} ${stripHtml(e.html)} ${e.tags.join(" ")}`.toLowerCase();
+        if(!hay.includes(q)) return false;
+      }
+      return true;
+    });
+  }
+
+  function renderHistory(){
+    const q = state.histQuery.trim();
+    const filtered = getFilteredHistoryEntries();
+    const sumWords = filtered.reduce((acc, e) => acc + countWords(e.html), 0);
+    const activeRange = getDateRangeForPreset(state.histPreset);
+    const presetItems = [
+      ["all","全部时间"], ["7d","近 7 天"], ["30d","近 30 天"], ["month","本月"],
+      ["thisYear","今年"], ["lastYear","去年"], ["2024","2024 年"], ["2023","2023 年"]
+    ];
+
+    mainWrap.innerHTML = `
+      <div class="sec-head" style="margin-bottom:18px">
+        <div>
+          <h1 style="margin:0;font-size:32px;font-weight:900">历史日记与全文检索</h1>
+          <div style="font-size:13px;color:var(--ink-3);font-weight:600;margin-top:4px">实际运行版支持对全量 85 万字做几十毫秒瞬时检索</div>
+        </div>
+        <div class="seg-mini">
+          <button class="${state.histLayout==="list"?"active":""}" data-h-layout="list">紧凑列表</button>
+          <button class="${state.histLayout==="gallery"?"active":""}" data-h-layout="gallery">正文卡片</button>
+        </div>
+      </div>
+
+      <div class="card search-bar-box">
+        <span style="font-size:16px">🔎</span>
+        <input id="histSearchInput" value="${escHtml(state.histQuery)}" placeholder="搜索标题、正文关键词（例如试搜：海风、阅读、散步、复盘）…">
+        ${q ? `<button class="btn btn-soft" id="clearSearchBtn" style="height:30px;padding:0 10px;font-size:12px">清空</button>` : ""}
+        <span class="badge-count num" id="histCountPill">${filtered.length} 篇 · ${sumWords.toLocaleString()} 字${q ? " · 12 毫秒" : ""}</span>
+      </div>
+
+      <div class="date-presets" aria-label="快捷日期范围">
+        ${presetItems.map(([k, label]) => `<button class="preset-pill ${state.histPreset===k?"active":""}" data-h-preset="${k}">${label}</button>`).join("")}
+      </div>
+
+      <div class="filter-row">
+        <div class="date-range-inputs" title="自定义起止日期">
+          <span style="color:var(--ink-3)">起</span>
+          <input type="date" id="fStartDate" value="${escHtml(activeRange.start)}" />
+          <span style="color:var(--ink-3)">至</span>
+          <input type="date" id="fEndDate" value="${escHtml(activeRange.end)}" />
+        </div>
+        <select class="select-pill" id="fKind">
+          <option value="all" ${state.histKind==="all"?"selected":""}>全部类型</option>
+          <option value="daily" ${state.histKind==="daily"?"selected":""}>每日日记</option>
+          <option value="special" ${state.histKind==="special"?"selected":""}>专项复盘</option>
+        </select>
+        <select class="select-pill" id="fTag">
+          <option value="all" ${state.histTag==="all"?"selected":""}>全部标签</option>
+          ${state.tags.map(t => `<option value="${escHtml(t.name)}" ${state.histTag===t.name?"selected":""}>${escHtml(t.name)}${t.enabled===false?"（已停用）":""}</option>`).join("")}
+        </select>
+        <select class="select-pill" id="fMood">
+          <option value="all" ${state.histMood==="all"?"selected":""}>全部心情</option>
+          ${state.moods.map(m => `<option value="${escHtml(m.label)}" ${state.histMood===m.label?"selected":""}>${escHtml(m.label)}</option>`).join("")}
+        </select>
+        <button class="btn btn-soft" id="fResetBtn" style="height:36px">重置筛选</button>
+      </div>
+
+      <div id="histResultsMount"></div>
+    `;
+
+    renderHistoryResults(filtered, q);
+
+    const sInput = document.getElementById("histSearchInput");
+    sInput.oninput = () => {
+      state.histQuery = sInput.value;
+      const newQ = state.histQuery.trim();
+      const nextFiltered = getFilteredHistoryEntries();
+      const nextWords = nextFiltered.reduce((acc, e) => acc + countWords(e.html), 0);
+      const pill = document.getElementById("histCountPill");
+      if(pill) pill.textContent = `${nextFiltered.length} 篇 · ${nextWords.toLocaleString()} 字${newQ ? " · 12 毫秒" : ""}`;
+      renderHistoryResults(nextFiltered, newQ);
+    };
+    const clearBtn = document.getElementById("clearSearchBtn");
+    if(clearBtn) clearBtn.onclick = () => { state.histQuery = ""; renderHistory(); };
+
+    mainWrap.querySelectorAll("[data-h-preset]").forEach(btn => {
+      btn.onclick = () => {
+        state.histPreset = btn.dataset.hPreset;
+        if(state.histPreset !== "custom"){
+          const r = getDateRangeForPreset(state.histPreset);
+          state.histStart = r.start;
+          state.histEnd = r.end;
+        }
+        renderHistory();
+      };
+    });
+    const fStart = document.getElementById("fStartDate");
+    const fEnd = document.getElementById("fEndDate");
+    fStart.onchange = () => {
+      state.histPreset = "custom";
+      state.histStart = fStart.value;
+      state.histEnd = fEnd.value;
+      renderHistory();
+    };
+    fEnd.onchange = () => {
+      state.histPreset = "custom";
+      state.histStart = fStart.value;
+      state.histEnd = fEnd.value;
+      renderHistory();
+    };
+    document.getElementById("fKind").onchange = e => { state.histKind = e.target.value; renderHistory(); };
+    document.getElementById("fTag").onchange = e => { state.histTag = e.target.value; renderHistory(); };
+    document.getElementById("fMood").onchange = e => { state.histMood = e.target.value; renderHistory(); };
+    document.getElementById("fResetBtn").onclick = () => {
+      state.histQuery = ""; state.histKind = "all"; state.histPreset = "all"; state.histStart = ""; state.histEnd = ""; state.histTag = "all"; state.histMood = "all";
+      renderHistory();
+    };
+    mainWrap.querySelectorAll("[data-h-layout]").forEach(b => {
+      b.onclick = () => { state.histLayout = b.dataset.hLayout; renderHistory(); };
+    });
+  }
+
+  function renderHistoryResults(list, q){
+    const mount = document.getElementById("histResultsMount");
+    if(!list.length){
+      mount.innerHTML = `<div class="card" style="padding:48px;text-align:center;color:var(--ink-3);font-weight:700">没有符合当前条件的日记，试试清空关键词或放宽筛选条件。</div>`;
+      return;
+    }
+    if(state.histLayout === "list"){
+      mount.innerHTML = `<div class="hist-list">${list.map(e => `
+        <div class="card lift hist-row" data-open-id="${e.id}">
+          <div style="flex:1;min-width:240px">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:5px">
+              <span class="num" style="font-size:13px;font-weight:800;color:var(--ink-3)">${e.kind==="special" ? "📌 专项复盘" : e.date}</span>
+              <span style="font-size:16px;font-weight:800">${highlightText(e.title, q)}</span>
+            </div>
+            <div style="font-size:13px;color:var(--ink-2);line-height:1.6">${highlightText(stripHtml(e.html).slice(0,115), q)}…</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span>${escHtml(e.moods.join(" "))}</span>
+            ${e.tags.map(tagBadgeHtml).join("")}
+            <span class="badge-count num">${countWords(e.html)} 字</span>
+          </div>
+        </div>
+      `).join("")}</div>`;
+    } else {
+      mount.innerHTML = `<div class="hist-gallery">${list.map(e => `
+        <div class="card lift hist-card" data-open-id="${e.id}">
+          <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:800;color:var(--ink-3)">
+            <span class="num">${e.kind==="special" ? "📌 专项复盘" : e.date}</span>
+            <span>${escHtml(e.moods.join(" "))}</span>
+          </div>
+          <div style="font-size:16px;font-weight:800;line-height:1.4">${highlightText(e.title, q)}</div>
+          <div class="hist-card-snippet">${highlightText(stripHtml(e.html), q)}</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:auto">
+            <div style="display:flex;gap:5px;flex-wrap:wrap">${e.tags.map(tagBadgeHtml).join("")}</div>
+            <span class="num" style="font-size:12px;color:var(--ink-3);font-weight:700">${countWords(e.html)} 字</span>
+          </div>
+        </div>
+      `).join("")}</div>`;
+    }
+    mount.querySelectorAll("[data-open-id]").forEach(el => {
+      el.onclick = () => openEditorById(el.dataset.openId);
+    });
+  }
+
+  /* 5. 统计分析：基础统计 + 周期客观复盘 + 双高光时间轴 + 内容洞察 */
+  function renderHighlightTimelineCard(title, subDesc, list, scopeType, scopeKey){
+    return `
+      <div class="card insight-card" style="margin-top:2px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+          <div>
+            <div style="font-size:16px;font-weight:900">${escHtml(title)}</div>
+            <div style="font-size:12px;color:var(--ink-3);font-weight:600;margin-top:2px">${escHtml(subDesc)}</div>
+          </div>
+          <button class="btn btn-soft" data-add-pin="${scopeType}:${scopeKey}" style="height:30px;padding:0 11px;font-size:12px">+ 手动钉选一篇日记</button>
+        </div>
+        ${list.length ? `
+          <div class="highlight-timeline">
+            ${list.map(hl => `
+              <div class="hl-item-row">
+                <button class="hl-main-btn" data-open-id="${escHtml(hl.entryId)}" title="点击直达这篇日记原文">
+                  <span class="hl-dot"></span>
+                  <div style="min-width:0;flex:1">
+                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+                      <span class="num" style="font-size:13px;font-weight:900">${escHtml(hl.date)}${hl.quarter ? " · " + escHtml(hl.quarter) : ""}</span>
+                      <span class="hl-title-text" style="font-size:13.5px;font-weight:800">${escHtml(hl.title)}</span>
+                      ${hl.pinned ? `<span class="pin-badge">📌 已手动钉选</span>` : `<span class="algo-tag">${escHtml(hl.algoTag)}</span>`}
+                    </div>
+                    <div style="font-size:12px;color:var(--ink-3);margin-top:3px;line-height:1.5">${escHtml(hl.reason)}</div>
+                  </div>
+                </button>
+                <div class="hl-actions">
+                  <button class="hl-op-btn" data-toggle-pin="${scopeType}:${scopeKey}:${escHtml(hl.id)}" title="${hl.pinned ? "取消钉选锁定" : "钉选锁定，重算复盘时自动保留"}">${hl.pinned ? "取消钉选" : "📌 钉选"}</button>
+                  <button class="hl-op-btn" data-remove-hl="${scopeType}:${scopeKey}:${escHtml(hl.id)}" title="从本条时间轴移出">移出</button>
+                </div>
+              </div>
+            `).join("")}
+          </div>
+        ` : `<div style="padding:18px;text-align:center;color:var(--ink-3);font-size:12.5px;font-weight:700;background:var(--surface-hover);border-radius:12px">当前时间轴条目已清空，可点击右上「+ 手动钉选一篇日记」或重新生成。</div>`}
+      </div>
+    `;
+  }
+
+  function renderStats(){
+    const yr = state.statsYear;
+    const statsByYear = {
+      all:  { count: "1,244", words: "85.3 万", avg: "686", max: "3,291", monthly: [62,58,64,70,72,68,75,78,71,74,80,81] },
+      "2026": { count: "323", words: "27.8 万", avg: "859", max: "3,291", monthly: [24,22,26,25,27,29,26,28,24,27,20,0] },
+      "2025": { count: "365", words: "31.6 万", avg: "866", max: "2,410", monthly: [23,21,25,26,28,27,29,28,26,27,28,28] },
+      "2024": { count: "366", words: "18.4 万", avg: "503", max: "1,720", monthly: [13,12,14,15,16,15,17,16,15,17,17,17] },
+      "2023": { count: "190", words: "7.5 万",  avg: "397", max: "1,180", monthly: [0,0,0,0,0,2,11,12,12,13,12,13] }
+    };
+    const d = statsByYear[yr];
+    const maxM = Math.max(...d.monthly, 1);
+    const maxMoodCnt = Math.max(...state.moods.map(m => m.count || 1), 1);
+
+    const topicCloud = [
+      { word: "散步", count: 42, size: 15 },
+      { word: "阅读", count: 38, size: 15 },
+      { word: "复盘", count: 29, size: 14 },
+      { word: "慢跑", count: 24, size: 14 },
+      { word: "海风", count: 18, size: 13 },
+      { word: "做饭", count: 27, size: 14 },
+      { word: "桌面整理", count: 16, size: 13 },
+      { word: "早睡", count: 21, size: 13 },
+      { word: "煮茶", count: 14, size: 12.5 },
+      { word: "老电影", count: 12, size: 12.5 },
+      { word: "效率", count: 19, size: 13 },
+      { word: "花架绿植", count: 11, size: 12 }
+    ];
+
+    const sr = state.statsReview;
+    const aiOn = state.aiConfig.enabled;
+    const tbOn = state.timebookConfig.enabled;
+    const curMonthObj = state.monthlyReviews[sr.month];
+    const curYearObj = state.yearlyReviews[sr.year];
+
+    let reviewBodyHtml = "";
+    if(!aiOn){
+      reviewBodyHtml = `
+        <div class="card" style="padding:20px;color:var(--ink-2);font-size:13.5px;font-weight:700">
+          模型服务当前处于关闭状态，基础字数与心情统计正常可用；开启模型后可生成并缓存月度复盘、年度复盘、双高光时间轴与内容洞察。
+        </div>
+      `;
+    } else if(sr.mode === "monthly"){
+      const monthOptions = [
+        ["2026-11", "2026 年 11 月（待解锁）"],
+        ["2026-10", "2026 年 10 月"],
+        ["2026-09", "2026 年 9 月"],
+        ["2026-08", "2026 年 8 月"]
+      ];
+      reviewBodyHtml = `
+        <div class="review-controls">
+          <div class="period-pills">
+            ${monthOptions.map(([k, label]) => `
+              <button class="preset-pill ${sr.month===k?"active":""}" data-rev-month="${k}">${escHtml(label)}</button>
+            `).join("")}
+          </div>
+          ${!curMonthObj.locked ? `
+            <button class="btn btn-dark" id="regenReviewBtn" style="height:34px;font-size:12.5px">
+              ${sr.regenerating ? "正在重算本月复盘…" : "↻ 重新生成本月复盘"}
+            </button>
+          ` : ""}
+        </div>
+        ${curMonthObj.locked ? `
+          <div class="lock-banner">
+            <div>
+              <div style="font-size:15px;font-weight:900;color:var(--ink)">🔒 本自然月尚未结束 · 预计 ${escHtml(curMonthObj.unlockDate)} 解锁</div>
+              <div style="font-size:13px;color:var(--ink-2);margin-top:5px;line-height:1.6">${escHtml(curMonthObj.hint)}</div>
+            </div>
+            <button class="btn btn-primary" data-rev-month="2026-10" style="height:36px;font-size:12.5px">查看已出炉的 10 月复盘 →</button>
+          </div>
+        ` : `
+          <div class="card" style="padding:20px 22px">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+              <div style="font-size:17px;font-weight:900">📅 ${escHtml(sr.month.replace("-"," 年 "))} 月 · 客观月度复盘</div>
+              <span class="badge-count" style="font-size:11.5px">${escHtml(curMonthObj.overview.contextNote)}${tbOn ? " + 时间簿当月聚合" : ""}</span>
+            </div>
+            <div class="kpi-strip" style="margin:10px 0 14px">
+              <div class="kpi-mini"><div class="k-label">本月记录</div><div class="k-val num" style="font-size:18px">${escHtml(curMonthObj.overview.days)}</div></div>
+              <div class="kpi-mini"><div class="k-label">本月字数</div><div class="k-val num" style="font-size:18px">${escHtml(curMonthObj.overview.words)}</div></div>
+              <div class="kpi-mini"><div class="k-label">主导心情</div><div class="k-val" style="font-size:15px;margin-top:7px">${escHtml(curMonthObj.overview.mood)}</div></div>
+              <div class="kpi-mini"><div class="k-label">${tbOn ? "时间簿投入 / 待办" : "时间簿联动"}</div><div class="k-val num" style="font-size:16px;margin-top:6px">${tbOn ? `${escHtml(curMonthObj.overview.tbHours)} · ${escHtml(curMonthObj.overview.todoRate)}` : "未开启（已降级）"}</div></div>
+            </div>
+            <div style="font-size:14px;line-height:1.75;color:var(--ink-2)">${escHtml(curMonthObj.overview.summary)}</div>
+          </div>
+
+          ${tbOn ? `
+            <div class="tb-cross-card">
+              <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+                <div style="font-size:16px;font-weight:900">⏱ 主观日记 × 时间簿客观耗时交叉洞察</div>
+                <span class="ai-badge">只读同步 · 零改动时间簿</span>
+              </div>
+              <div class="dual-col">
+                <div class="dual-box">
+                  <div style="font-size:12.5px;font-weight:800;color:var(--ink)">本月各模块真实耗时分布（合计 ${escHtml(curMonthObj.overview.tbHours)}）</div>
+                  ${curMonthObj.timebookMix.map(row => `
+                    <div class="tb-bar-row">
+                      <span class="tb-bar-name">${escHtml(row.name)}</span>
+                      <div class="tb-bar-track"><div class="tb-bar-fill" style="width:${row.pct}%;background:${row.color}"></div></div>
+                      <span class="tb-bar-meta num">${row.hours}h（${escHtml(row.delta)}）</span>
+                    </div>
+                  `).join("")}
+                </div>
+                <div class="dual-box">
+                  <div style="font-size:12.5px;font-weight:800;color:var(--ink)">时间投入与情绪状态的客观对照</div>
+                  ${curMonthObj.crossInsights.map(line => `<div style="font-size:13px;line-height:1.65;color:var(--ink-2)">• ${escHtml(line)}</div>`).join("")}
+                </div>
+              </div>
+            </div>
+          ` : `
+            <div class="card" style="padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;background:var(--surface-hover)">
+              <span style="font-size:12.5px;color:var(--ink-3);font-weight:700">当前「时间簿只读联动」已关闭，本月复盘已自动降级为纯日记内容视角。</span>
+              <button class="btn btn-soft" data-open-tb-cfg style="height:30px;font-size:12px">开启时间簿联动</button>
+            </div>
+          `}
+
+          <div class="dim-grid">
+            <div class="dim-box"><div style="font-size:14px;font-weight:900">💼 工作与事务</div><div style="font-size:13px;line-height:1.7;color:var(--ink-2)">${escHtml(curMonthObj.dimensions.work)}</div></div>
+            <div class="dim-box"><div style="font-size:14px;font-weight:900">🌿 生活与健康</div><div style="font-size:13px;line-height:1.7;color:var(--ink-2)">${escHtml(curMonthObj.dimensions.life)}</div></div>
+            <div class="dim-box"><div style="font-size:14px;font-weight:900">📖 娱乐与成长</div><div style="font-size:13px;line-height:1.7;color:var(--ink-2)">${escHtml(curMonthObj.dimensions.leisure)}</div></div>
+            <div class="dim-box"><div style="font-size:14px;font-weight:900">🧭 情绪波动与恢复规律</div><div style="font-size:13px;line-height:1.7;color:var(--ink-2)">${escHtml(curMonthObj.dimensions.emotion)}</div></div>
+          </div>
+
+          <div class="card" style="padding:18px 20px">
+            <div style="font-size:15px;font-weight:900;margin-bottom:8px">🎯 下月可执行小建议（锚定本月日记反思）</div>
+            ${curMonthObj.nextActions.map((act, idx) => `<div style="font-size:13.5px;line-height:1.7;color:var(--ink-2)">${idx+1}. ${escHtml(act)}</div>`).join("")}
+          </div>
+
+          ${renderHighlightTimelineCard(
+            "✨ 月度高光时间轴（每月精选 4～6 条）",
+            "抽取算法：本地规则初筛（重要事件/节点加权 · 篇幅 ≥ 均值 1.4 倍 · 情绪峰值）+ 同次复盘模型精选 + 真实日期溯源校验",
+            curMonthObj.highlights,
+            "monthly",
+            sr.month
+          )}
+        `}
+      `;
+    } else {
+      const yearOptions = [
+        ["2026", "2026 年（待解锁）"],
+        ["2025", "2025 年"],
+        ["2024", "2024 年"],
+        ["2023", "2023 年"]
+      ];
+      reviewBodyHtml = `
+        <div class="review-controls">
+          <div class="period-pills">
+            ${yearOptions.map(([k, label]) => `
+              <button class="preset-pill ${sr.year===k?"active":""}" data-rev-year="${k}">${escHtml(label)}</button>
+            `).join("")}
+          </div>
+          ${!curYearObj.locked ? `
+            <button class="btn btn-dark" id="regenReviewBtn" style="height:34px;font-size:12.5px">
+              ${sr.regenerating ? "正在重算年度复盘…" : "↻ 重新生成年度复盘"}
+            </button>
+          ` : ""}
+        </div>
+        ${curYearObj.locked ? `
+          <div class="lock-banner">
+            <div>
+              <div style="font-size:15px;font-weight:900;color:var(--ink)">🔒 2026 自然年尚未结束 · 将于 ${escHtml(curYearObj.unlockDate)} 解锁</div>
+              <div style="font-size:13px;color:var(--ink-2);margin-top:5px;line-height:1.6">${escHtml(curYearObj.hint)}</div>
+            </div>
+            <button class="btn btn-primary" data-rev-year="2025" style="height:36px;font-size:12.5px">查看 2025 年度复盘 →</button>
+          </div>
+        ` : `
+          <div class="card" style="padding:20px 22px">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+              <div style="font-size:17px;font-weight:900">🗓 ${escHtml(sr.year)} 年度客观复盘</div>
+              <span class="badge-count" style="font-size:11.5px">${escHtml(curYearObj.overview.contextNote)}${tbOn ? " + 时间簿年度聚合" : ""}</span>
+            </div>
+            <div class="kpi-strip" style="margin:10px 0 14px">
+              <div class="kpi-mini"><div class="k-label">全年记录</div><div class="k-val num" style="font-size:17px">${escHtml(curYearObj.overview.days)}</div></div>
+              <div class="kpi-mini"><div class="k-label">全年总字数</div><div class="k-val num" style="font-size:17px">${escHtml(curYearObj.overview.words)}</div></div>
+              <div class="kpi-mini"><div class="k-label">同比变化</div><div class="k-val num" style="font-size:16px">${escHtml(curYearObj.overview.delta)}</div></div>
+              <div class="kpi-mini"><div class="k-label">${tbOn ? "时间簿全年投入" : "时间簿联动"}</div><div class="k-val num" style="font-size:16px">${tbOn ? escHtml(curYearObj.overview.tbHours) : "未开启（已降级）"}</div></div>
+            </div>
+            <div style="font-size:14px;line-height:1.75;color:var(--ink-2)">${escHtml(curYearObj.overview.summary)}</div>
+          </div>
+
+          <div class="card" style="padding:18px 20px">
+            <div style="font-size:15px;font-weight:900;margin-bottom:10px">🍂 四季节奏与重心迁移</div>
+            <div class="quarter-grid">
+              ${curYearObj.quarters.map(q => `
+                <div class="quarter-box">
+                  <div style="font-size:13px;font-weight:900;color:var(--ink)">${escHtml(q.q)}</div>
+                  <div style="font-size:12.5px;line-height:1.6;color:var(--ink-2)">${escHtml(q.desc)}</div>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+
+          <div class="dim-grid">
+            <div class="dim-box">
+              <div style="font-size:14px;font-weight:900">📌 工作 · 生活 · 成长三线盘点</div>
+              ${curYearObj.threeLines.map(t => `<div style="font-size:13px;line-height:1.65;color:var(--ink-2)">• ${escHtml(t)}</div>`).join("")}
+            </div>
+            <div class="dim-box">
+              <div style="font-size:14px;font-weight:900">🔁 跨月重复出现的行为模式</div>
+              ${curYearObj.patterns.map(p => `<div style="font-size:13px;line-height:1.65;color:var(--ink-2)">• ${escHtml(p)}</div>`).join("")}
+              <div style="margin-top:6px;padding-top:8px;border-top:1px dashed var(--border);font-size:12.5px;font-weight:800;color:var(--ink)">来年 3 条锚点建议：</div>
+              ${curYearObj.anchors.map((a, idx) => `<div style="font-size:12.5px;line-height:1.6;color:var(--ink-2)">${idx+1}. ${escHtml(a)}</div>`).join("")}
+            </div>
+          </div>
+
+          ${renderHighlightTimelineCard(
+            "🏆 年度高光时间轴（每年收敛 8～12 条）",
+            "抽取算法：汇总全年 12 份月度高光 + 全年「重要事件 / 节点事件 / 年度复盘」防漏兜底 → 跨月去重合并连续出行/项目 → 平衡四季",
+            curYearObj.highlights,
+            "yearly",
+            sr.year
+          )}
+        `}
+      `;
+    }
+
+    mainWrap.innerHTML = `
+      <div class="sec-head" style="margin-bottom:18px">
+        <div>
+          <h1 style="margin:0;font-size:32px;font-weight:900">写作与心情统计</h1>
+          <div style="font-size:13px;color:var(--ink-3);font-weight:600;margin-top:4px">全自动实时计算字数与情绪变化，告别手工维护公式</div>
+        </div>
+        <div class="seg-mini">
+          ${[["all","全部"],["2026","2026年"],["2025","2025年"],["2024","2024年"],["2023","2023年"]].map(([k,v]) =>
+            `<button class="${yr===k?"active":""}" data-st-yr="${k}">${v}</button>`
+          ).join("")}
+        </div>
+      </div>
+
+      <div class="kpi-strip">
+        <div class="card kpi-mini" style="padding:18px"><div class="k-label">日记篇数</div><div class="k-val num">${d.count} 篇</div></div>
+        <div class="card kpi-mini" style="padding:18px"><div class="k-label">总写字数</div><div class="k-val num">${d.words}字</div></div>
+        <div class="card kpi-mini" style="padding:18px"><div class="k-label">平均每篇</div><div class="k-val num">${d.avg} 字</div></div>
+        <div class="card kpi-mini" style="padding:18px"><div class="k-label">最长单篇</div><div class="k-val num">${d.max} 字</div></div>
+      </div>
+
+      <div class="stats-grid-2">
+        <div class="card chart-card">
+          <h3 style="margin:0 0 18px;font-size:17px;font-weight:800">月度字数趋势（千字）</h3>
+          <div style="display:flex;align-items:flex-end;gap:10px;height:190px;padding-top:16px">
+            ${d.monthly.map((val, i) => `
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end;gap:6px">
+                <span class="num" style="font-size:11px;font-weight:800;color:var(--ink-3)">${val>0?val:""}</span>
+                <div title="${i+1}月：约 ${val} 千字" style="width:100%;max-width:26px;height:${Math.max(4, Math.round(val/maxM*135))}px;border-radius:7px 7px 3px 3px;background:${val>0?"var(--accent)":"var(--heat-0)"};transition:height .35s"></div>
+                <span class="num" style="font-size:11px;font-weight:700;color:var(--ink-3)">${i+1}月</span>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+
+        <div class="card chart-card">
+          <h3 style="margin:0 0 14px;font-size:17px;font-weight:800">8 档核心心情分布（全周期实况参考）</h3>
+          ${state.moods.map(m => `
+            <div class="bar-row">
+              <span class="bar-label">${escHtml(m.label)}</span>
+              <div class="bar-track"><div class="bar-fill" style="width:${Math.max(4, Math.round((m.count||1)/maxMoodCnt*100))}%;background:${m.tone}"></div></div>
+              <span class="bar-val num">${m.count||0} 次</span>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+
+      <section class="review-shell" aria-label="客观周期复盘与双高光时间轴">
+        <div class="sec-head" style="margin-bottom:0">
+          <div>
+            <h2 class="sec-title"><span class="ai-badge">✦ 客观周期复盘</span><span>月度与年度总结 · 含双高光时间轴</span></h2>
+            <div style="font-size:12px;color:var(--ink-3);font-weight:600;margin-top:4px">
+              按自然周期自动结算并永久缓存（月复盘次月 1 日解锁 · 年复盘次年 1 月 1 日解锁）
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <div class="seg-mini">
+              <button class="${sr.mode==="monthly"?"active":""}" data-rev-mode="monthly">月度复盘 &amp; 月高光轴</button>
+              <button class="${sr.mode==="yearly"?"active":""}" data-rev-mode="yearly">年度复盘 &amp; 年高光轴</button>
+            </div>
+            <button class="btn btn-soft" data-open-tb-cfg style="height:32px;font-size:12px">
+              ${tbOn ? "⏱ 已融合时间簿耗时" : "⏱ 配置时间簿联动"}
+            </button>
+          </div>
+        </div>
+        ${reviewBodyHtml}
+      </section>
+
+      <section class="insight-sec" aria-label="过往内容趣味洞察">
+        <div class="sec-head">
+          <div>
+            <h2 class="sec-title"><span class="ai-badge">✦ 内容规律洞察</span><span>情绪触发器与生活重心词云</span></h2>
+            <div style="font-size:12px;color:var(--ink-3);font-weight:600;margin-top:4px">
+              复用结构化日概要主题词本地聚合，日常翻看零消耗 · 上次更新：${escHtml(state.insight.refreshedAt)} · ${escHtml(state.insight.tokenHint)}
+            </div>
+          </div>
+          ${aiOn ? `
+            <button class="btn btn-soft" id="refreshInsightBtn" style="height:34px;font-size:12.5px">
+              ${state.insight.refreshing ? "正在重新聚合…" : "↻ 刷新词云与触发器"}
+            </button>
+          ` : `
+            <button class="btn btn-soft" id="insightOpenAiBtn" style="height:34px;font-size:12.5px">去开启模型服务</button>
+          `}
+        </div>
+
+        ${!aiOn ? "" : `
+          <div class="insight-grid">
+            <div class="card insight-card">
+              <div style="font-size:16px;font-weight:900">⚡ 快乐触发器 &amp; 情绪消耗点</div>
+              <div class="dual-col">
+                <div class="dual-box">
+                  <div style="font-size:12.5px;font-weight:800;color:var(--ok-ink)">☀ 让你快速回血的场景</div>
+                  <div style="font-size:13px;line-height:1.6;color:var(--ink-2)">• <b>傍晚散步与慢跑</b>：海岸吹风看落日、东湖十公里出透汗后情绪立刻转晴</div>
+                  <div style="font-size:13px;line-height:1.6;color:var(--ink-2)">• <b>亲手整理小空间</b>：收进理线盒、摆好阳台绿植与暖光灯带来强掌控感</div>
+                  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:auto">
+                    <button class="cite-chip" data-open-id="d-2026-11-02">2026-11-02 海边落日</button>
+                    <button class="cite-chip" data-open-id="d-2026-11-15">2026-11-15 东湖慢跑</button>
+                  </div>
+                </div>
+                <div class="dual-box">
+                  <div style="font-size:12.5px;font-weight:800;color:var(--warn-ink)">🪫 容易消耗精力的信号</div>
+                  <div style="font-size:13px;line-height:1.6;color:var(--ink-2)">• <b>多分支并行推进</b>：同时开过多事项导致肩颈紧绷、成就感被切碎</div>
+                  <div style="font-size:13px;line-height:1.6;color:var(--ink-2)">• <b>连续赶工缺少停顿</b>：晚间刷碎片信息挤压整块阅读与休息时间</div>
+                  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:auto">
+                    <button class="cite-chip" data-open-id="d-2026-11-10">2026-11-10 周中复盘</button>
+                    <button class="cite-chip" data-open-id="s-2025-year">2025 年度复盘</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card insight-card">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+                <div style="font-size:16px;font-weight:900">☁ 生活重心主题词云</div>
+                <span style="font-size:11.5px;color:var(--ink-3);font-weight:700">点击任意关键词检索相关日记</span>
+              </div>
+              <div class="topic-cloud">
+                ${topicCloud.map(tp => `
+                  <button class="topic-pill" data-topic-search="${escHtml(tp.word)}" style="font-size:${tp.size}px">
+                    <span>#${escHtml(tp.word)}</span>
+                    <span class="num" style="font-size:11px;color:var(--ink-3)">${tp.count}</span>
+                  </button>
+                `).join("")}
+              </div>
+            </div>
+          </div>
+        `}
+      </section>
+    `;
+
+    mainWrap.querySelectorAll("[data-st-yr]").forEach(b => {
+      b.onclick = () => { state.statsYear = b.dataset.stYr; renderStats(); };
+    });
+    mainWrap.querySelectorAll("[data-rev-mode]").forEach(b => {
+      b.onclick = () => { sr.mode = b.dataset.revMode; renderStats(); };
+    });
+    mainWrap.querySelectorAll("[data-rev-month]").forEach(b => {
+      b.onclick = () => { sr.month = b.dataset.revMonth; renderStats(); };
+    });
+    mainWrap.querySelectorAll("[data-rev-year]").forEach(b => {
+      b.onclick = () => { sr.year = b.dataset.revYear; renderStats(); };
+    });
+    mainWrap.querySelectorAll("[data-open-tb-cfg]").forEach(b => {
+      b.onclick = () => openSettingsDrawer("ai");
+    });
+
+    const regenBtn = document.getElementById("regenReviewBtn");
+    if(regenBtn){
+      regenBtn.onclick = () => {
+        sr.regenerating = true;
+        renderStats();
+        setTimeout(() => {
+          sr.regenerating = false;
+          const targetObj = sr.mode === "monthly" ? state.monthlyReviews[sr.month] : state.yearlyReviews[sr.year];
+          const pinnedCount = (targetObj?.highlights || []).filter(h => h.pinned).length;
+          renderStats();
+          showToast(pinnedCount ? `✦ 已重算复盘，并保留 ${pinnedCount} 条手动钉选高光` : "✦ 已重新生成并缓存本期客观复盘");
+        }, 420);
+      };
+    }
+
+    mainWrap.querySelectorAll("[data-toggle-pin]").forEach(b => {
+      b.onclick = () => {
+        const [scopeType, scopeKey, hid] = b.dataset.togglePin.split(":");
+        const box = scopeType === "monthly" ? state.monthlyReviews[scopeKey] : state.yearlyReviews[scopeKey];
+        const hl = box?.highlights?.find(x => x.id === hid);
+        if(!hl) return;
+        hl.pinned = !hl.pinned;
+        renderStats();
+        showToast(hl.pinned ? "📌 已钉选锁定，重算复盘时不会丢失" : "已取消钉选锁定");
+      };
+    });
+
+    mainWrap.querySelectorAll("[data-remove-hl]").forEach(b => {
+      b.onclick = () => {
+        const [scopeType, scopeKey, hid] = b.dataset.removeHl.split(":");
+        const box = scopeType === "monthly" ? state.monthlyReviews[scopeKey] : state.yearlyReviews[scopeKey];
+        if(!box?.highlights) return;
+        box.highlights = box.highlights.filter(x => x.id !== hid);
+        renderStats();
+        showToast("已将该条移出时间轴");
+      };
+    });
+
+    mainWrap.querySelectorAll("[data-add-pin]").forEach(b => {
+      b.onclick = () => {
+        const [scopeType, scopeKey] = b.dataset.addPin.split(":");
+        const box = scopeType === "monthly" ? state.monthlyReviews[scopeKey] : state.yearlyReviews[scopeKey];
+        if(!box?.highlights) return;
+        const pool = state.entries.filter(e => !box.highlights.some(h => h.entryId === e.id && h.pinned));
+        const pick = pool[0] || state.entries[0];
+        if(!pick) return;
+        box.highlights.unshift({
+          id: "pin-" + Date.now(),
+          date: pick.date,
+          quarter: scopeType === "yearly" ? "Q4" : "",
+          title: pick.aiShortTitle || pick.title,
+          reason: "由用户手动钉选锁定为高光记忆节点",
+          algoTag: "手动钉选",
+          entryId: pick.id,
+          pinned: true
+        });
+        renderStats();
+        showToast(`📌 已将「${pick.date}」手动钉选进时间轴`);
+      };
+    });
+
+    const refBtn = document.getElementById("refreshInsightBtn");
+    if(refBtn){
+      refBtn.onclick = () => {
+        state.insight.refreshing = true;
+        renderStats();
+        setTimeout(() => {
+          state.insight.refreshing = false;
+          state.insight.version += 1;
+          state.insight.refreshedAt = "刚刚";
+          state.insight.tokenHint = "本次已重新聚合全部主题词";
+          renderStats();
+          showToast("✦ 已刷新内容规律与词云");
+        }, 360);
+      };
+    }
+    const aiBtn = document.getElementById("insightOpenAiBtn");
+    if(aiBtn) aiBtn.onclick = () => openSettingsDrawer("ai");
+    mainWrap.querySelectorAll("[data-topic-search]").forEach(btn => {
+      btn.onclick = () => {
+        state.histQuery = btn.dataset.topicSearch;
+        navigate("history");
+        showToast(`已在历史日记中检索「${btn.dataset.topicSearch}」`);
+      };
+    });
+    mainWrap.querySelectorAll("[data-open-id]").forEach(btn => {
+      btn.onclick = () => openEditorById(btn.dataset.openId);
+    });
+  }
+
+  /* ================== 右侧设置抽屉与安全迁移弹窗 ================== */
+  let activeSettingsTab = "ai"; // ai | tags | templates | import | backup
+  let batchTimer = null;
+  let editingTagId = null;
+  let editingMoodId = null;
+
+  function stopBatchTimer(){
+    if(batchTimer){
+      clearInterval(batchTimer);
+      batchTimer = null;
+    }
+    state.aiConfig.batchRunning = false;
+  }
+
+  function closeSettingsDrawer(){
+    stopBatchTimer();
+    modalRoot.innerHTML = "";
+  }
+
+  function openSettingsDrawer(tab){
+    if(typeof tab === "string" && tab) activeSettingsTab = tab;
+    modalRoot.innerHTML = `
+      <div class="modal-mask" id="drawerMask">
+        <div class="drawer-panel">
+          <div class="drawer-head">
+            <div>
+              <div style="font-size:18px;font-weight:900">设置与数据管理</div>
+              <div style="font-size:12px;color:var(--ink-3);font-weight:600;margin-top:2px">绿联家庭服务器容器端口默认 3220 · 单人加密访问</div>
+            </div>
+            <button class="icon-btn" id="closeDrawerBtn">✕</button>
+          </div>
+          <div class="drawer-tabs">
+            <button class="drawer-tab ${activeSettingsTab==="ai"?"active":""}" data-stab="ai">✦ 模型服务</button>
+            <button class="drawer-tab ${activeSettingsTab==="tags"?"active":""}" data-stab="tags">标签与心情</button>
+            <button class="drawer-tab ${activeSettingsTab==="templates"?"active":""}" data-stab="templates">日记模板</button>
+            <button class="drawer-tab ${activeSettingsTab==="import"?"active":""}" data-stab="import">历史数据搬家</button>
+            <button class="drawer-tab ${activeSettingsTab==="backup"?"active":""}" data-stab="backup">备份与回收站</button>
+          </div>
+          <div class="drawer-body" id="drawerBody"></div>
+        </div>
+      </div>
+    `;
+    document.getElementById("closeDrawerBtn").onclick = closeSettingsDrawer;
+    document.getElementById("drawerMask").onclick = (e) => { if(e.target.id === "drawerMask") closeSettingsDrawer(); };
+    modalRoot.querySelectorAll("[data-stab]").forEach(b => {
+      b.onclick = () => { activeSettingsTab = b.dataset.stab; openSettingsDrawer(); };
+    });
+    renderSettingsTabBody();
+  }
+
+  function openTagMigrateModal(tagObj){
+    const candidates = state.tags.filter(t => t.id !== tagObj.id);
+    if(!candidates.length){
+      showToast("至少需要保留 1 个可用标签");
+      return;
+    }
+    let selectedTarget = "";
+    function renderModal(){
+      centerModalRoot.innerHTML = `
+        <div class="center-modal-mask modal-overlay-top" id="tagMigrateMask">
+          <div class="center-modal" role="dialog" aria-modal="true" aria-label="安全删除并迁移标签">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px">
+              <div style="font-size:17px;font-weight:900">安全删除标签「${escHtml(tagObj.name)}」</div>
+              <button class="icon-btn" id="closeMigrateModalBtn" style="width:30px;height:30px;border-radius:9px">✕</button>
+            </div>
+            <div style="padding:10px 12px;border-radius:12px;background:var(--warn-bg);border:1px solid var(--warn-line);color:var(--warn-ink);font-size:12.5px;font-weight:700;line-height:1.6;margin-bottom:14px">
+              请放心：<b>删除标签绝不会删除任何一篇日记</b>。当前共有 <span class="num">${tagObj.count}</span> 篇日记带有此标签，请先选择要将它们迁移替换成哪个现有标签（原日记已含目标标签时自动合并去重）。
+            </div>
+            <div class="form-label" style="margin-bottom:8px">必须选择一个替换目标标签（未选前无法确认删除）：</div>
+            <div style="display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto;margin-bottom:16px">
+              ${candidates.map(c => `
+                <label style="display:flex;align-items:center;justify-content:space-between;padding:8px 11px;border-radius:11px;border:1.5px solid ${selectedTarget===c.name?"var(--ink)":"var(--border)"};background:${selectedTarget===c.name?"var(--surface-hover)":"var(--surface)"};cursor:pointer">
+                  <span style="display:inline-flex;align-items:center;gap:8px">
+                    <input type="radio" name="migrateTarget" value="${escHtml(c.name)}" ${selectedTarget===c.name?"checked":""} />
+                    ${tagBadgeHtml(c.name)}
+                  </span>
+                  <span class="num" style="font-size:12px;color:var(--ink-3);font-weight:700">${c.count} 篇</span>
+                </label>
+              `).join("")}
+            </div>
+            <div style="display:flex;gap:8px;justify-content:flex-end">
+              <button class="btn btn-soft" id="cancelMigrateBtn" style="height:38px">取消</button>
+              <button class="btn btn-danger-soft" id="confirmMigrateDelBtn" ${selectedTarget?"":"disabled"} style="height:38px;background:var(--danger);color:#FFFFFF">确认替换并删除</button>
+            </div>
+          </div>
+        </div>
+      `;
+      document.getElementById("closeMigrateModalBtn").onclick = () => { centerModalRoot.innerHTML = ""; };
+      document.getElementById("cancelMigrateBtn").onclick = () => { centerModalRoot.innerHTML = ""; };
+      document.getElementById("tagMigrateMask").onclick = (e) => { if(e.target.id === "tagMigrateMask") centerModalRoot.innerHTML = ""; };
+      centerModalRoot.querySelectorAll("input[name='migrateTarget']").forEach(rad => {
+        rad.onchange = () => { selectedTarget = rad.value; renderModal(); };
+      });
+      const confirmBtn = document.getElementById("confirmMigrateDelBtn");
+      if(confirmBtn){
+        confirmBtn.onclick = () => {
+          if(!selectedTarget) return;
+          const targetObj = state.tags.find(t => t.name === selectedTarget);
+          if(targetObj) targetObj.count += tagObj.count;
+          state.entries.forEach(entry => {
+            if(entry.tags.includes(tagObj.name)){
+              entry.tags = [...new Set(entry.tags.map(x => x === tagObj.name ? selectedTarget : x))];
+            }
+          });
+          if(state.editor.tags.includes(tagObj.name)){
+            state.editor.tags = [...new Set(state.editor.tags.map(x => x === tagObj.name ? selectedTarget : x))];
+          }
+          if(state.histTag === tagObj.name) state.histTag = selectedTarget;
+          state.tags = state.tags.filter(t => t.id !== tagObj.id);
+          centerModalRoot.innerHTML = "";
+          renderSettingsTabBody();
+          render();
+          showToast(`已将 ${tagObj.count} 篇日记无损迁移至「${selectedTarget}」并删除「${tagObj.name}」`);
+        };
+      }
+    }
+    renderModal();
+  }
+
+  function openMoodMigrateModal(moodObj){
+    const candidates = state.moods.filter(m => m.id !== moodObj.id);
+    if(!candidates.length){
+      showToast("至少需要保留 1 个心情选项");
+      return;
+    }
+    let selectedLabel = "";
+    function renderModal(){
+      centerModalRoot.innerHTML = `
+        <div class="center-modal-mask modal-overlay-top" id="moodMigrateMask">
+          <div class="center-modal" role="dialog" aria-modal="true" aria-label="安全删除并迁移心情">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px">
+              <div style="font-size:17px;font-weight:900">删除并迁移心情「${escHtml(moodObj.label)}」</div>
+              <button class="icon-btn" id="closeMoodModalBtn" style="width:30px;height:30px;border-radius:9px">✕</button>
+            </div>
+            <div style="padding:10px 12px;border-radius:12px;background:var(--warn-bg);border:1px solid var(--warn-line);color:var(--warn-ink);font-size:12.5px;font-weight:700;line-height:1.6;margin-bottom:14px">
+              不会删除任何日记。请先选择将原带有「${escHtml(moodObj.label)}」（约 <span class="num">${moodObj.count||0}</span> 次）的日记归并到哪一个现有心情：
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">
+              ${candidates.map(c => `
+                <button class="pick-opt ${selectedLabel===c.label?"selected":""}" data-mood-target="${escHtml(c.label)}">${escHtml(c.label)}</button>
+              `).join("")}
+            </div>
+            <div style="display:flex;gap:8px;justify-content:flex-end">
+              <button class="btn btn-soft" id="cancelMoodMigrateBtn" style="height:38px">取消</button>
+              <button class="btn btn-danger-soft" id="confirmMoodDelBtn" ${selectedLabel?"":"disabled"} style="height:38px;background:var(--danger);color:#FFFFFF">确认迁移并删除</button>
+            </div>
+          </div>
+        </div>
+      `;
+      document.getElementById("closeMoodModalBtn").onclick = () => { centerModalRoot.innerHTML = ""; };
+      document.getElementById("cancelMoodMigrateBtn").onclick = () => { centerModalRoot.innerHTML = ""; };
+      document.getElementById("moodMigrateMask").onclick = (e) => { if(e.target.id === "moodMigrateMask") centerModalRoot.innerHTML = ""; };
+      centerModalRoot.querySelectorAll("[data-mood-target]").forEach(btn => {
+        btn.onclick = () => { selectedLabel = btn.dataset.moodTarget; renderModal(); };
+      });
+      const confirmBtn = document.getElementById("confirmMoodDelBtn");
+      if(confirmBtn){
+        confirmBtn.onclick = () => {
+          if(!selectedLabel) return;
+          const targetObj = state.moods.find(m => m.label === selectedLabel);
+          if(targetObj) targetObj.count = (targetObj.count || 0) + (moodObj.count || 0);
+          state.entries.forEach(entry => {
+            if(entry.moods.includes(moodObj.label)){
+              entry.moods = [...new Set(entry.moods.map(x => x === moodObj.label ? selectedLabel : x))];
+            }
+          });
+          if(state.editor.moods.includes(moodObj.label)){
+            state.editor.moods = [...new Set(state.editor.moods.map(x => x === moodObj.label ? selectedLabel : x))];
+          }
+          if(state.histMood === moodObj.label) state.histMood = selectedLabel;
+          state.moods = state.moods.filter(m => m.id !== moodObj.id);
+          centerModalRoot.innerHTML = "";
+          renderSettingsTabBody();
+          render();
+          showToast(`已将「${moodObj.label}」迁移至「${selectedLabel}」并删除`);
+        };
+      }
+    }
+    renderModal();
+  }
+
+  function renderSettingsTabBody(){
+    const body = document.getElementById("drawerBody");
+    if(!body) return;
+    if(activeSettingsTab === "ai"){
+      const ai = state.aiConfig;
+      const pct = Math.min(100, Math.round(ai.batchDone / ai.batchTotal * 100));
+      const providerPresets = {
+        openai: { label: "OpenAI 兼容", url: "https://api.openai.com/v1", model: "gpt-4.1-mini" },
+        gemini: { label: "Gemini 原生", url: "https://generativelanguage.googleapis.com", model: "gemini-2.5-flash" },
+        anthropic: { label: "Anthropic 原生", url: "https://api.anthropic.com", model: "claude-3-7-sonnet" }
+      };
+      body.innerHTML = `
+        <div class="sub-card">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+            <div>
+              <div style="font-size:15px;font-weight:800">启用智能摘要与回忆问答</div>
+              <div style="font-size:12px;color:var(--ink-3);margin-top:3px">关闭后自动平滑降级展示原标题与原文节选，可随时切换对比</div>
+            </div>
+            <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:800;cursor:pointer">
+              <input type="checkbox" id="aiEnabledChk" ${ai.enabled?"checked":""} style="width:18px;height:18px" />
+              <span>${ai.enabled?"已开启":"已关闭"}</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="sub-card">
+          <div style="font-size:15px;font-weight:800;margin-bottom:10px">模型接口参数配置</div>
+          <div class="form-field">
+            <span class="form-label">接口协议类型</span>
+            <div class="seg-mini" style="width:100%;justify-content:space-between">
+              ${Object.entries(providerPresets).map(([k, v]) => `
+                <button data-ai-provider="${k}" class="${ai.provider===k?"active":""}" style="flex:1">${v.label}</button>
+              `).join("")}
+            </div>
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="aiBaseUrlInput">接口地址</label>
+            <input class="form-input" id="aiBaseUrlInput" value="${escHtml(ai.baseUrl)}" placeholder="${escHtml(providerPresets[ai.provider].url)}" />
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="aiKeyInput">接口密钥（正式版仅服务端加密存储，不回传前端明文）</label>
+            <div style="display:flex;gap:6px">
+              <input class="form-input" id="aiKeyInput" type="${ai.showKey?"text":"password"}" value="${escHtml(ai.apiKey)}" placeholder="请输入模型访问密钥" />
+              <button class="btn btn-soft" id="aiToggleKeyBtn" style="height:38px;white-space:nowrap">${ai.showKey?"隐藏":"显示"}</button>
+            </div>
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="aiModelInput">模型标识</label>
+            <input class="form-input" id="aiModelInput" value="${escHtml(ai.modelId)}" placeholder="${escHtml(providerPresets[ai.provider].model)}" />
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:6px">
+            <label style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-3);font-weight:700;cursor:pointer">
+              <input type="checkbox" id="aiSimErrChk" ${ai.simulateError?"checked":""} />
+              <span>模拟接口连通异常（体验报错提示）</span>
+            </label>
+            <button class="btn btn-primary" id="aiTestConnBtn" style="height:38px;font-size:13px">${ai.connStatus==="testing"?"正在握手检测…":"⚡ 检测连通性"}</button>
+          </div>
+          ${ai.connStatus==="ok" ? `<div class="conn-result ok">✓ ${escHtml(ai.connMsg)}</div>` : ""}
+          ${ai.connStatus==="error" ? `<div class="conn-result err">✕ ${escHtml(ai.connMsg)}</div>` : ""}
+        </div>
+
+        <div class="sub-card">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+            <div style="font-size:15px;font-weight:800">批量补齐历史智能摘要</div>
+            <span class="badge-count num">${ai.batchDone} / ${ai.batchTotal} 篇（${pct}%）</span>
+          </div>
+          <div style="font-size:12px;color:var(--ink-3);margin-top:4px;line-height:1.6">
+            日常新写与修改日记会在保存后静默自动总结；历史搬家入库后的存量日记可在此随时开始、暂停并断点续跑（已完成篇数永久缓存不重算）。
+          </div>
+          <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button class="btn ${ai.batchRunning?"btn-ghost":"btn-dark"}" id="aiBatchBtn" style="height:36px">${ai.batchDone >= ai.batchTotal ? "✓ 已全部补齐" : (ai.batchRunning ? "⏸ 暂停补齐" : "▶ 继续批量补齐")}</button>
+            ${ai.batchDone < ai.batchTotal ? `<button class="btn btn-soft" id="aiBatchResetBtn" style="height:36px">重置进度演示</button>` : ""}
+          </div>
+        </div>
+
+        <div class="sub-card">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px">
+            <div>
+              <div style="font-size:15px;font-weight:800">⏱ 时间簿只读联动（合并客观耗时做复盘）</div>
+              <div style="font-size:12px;color:var(--ink-3);margin-top:3px">通过时间簿现成只读同步接口按需拉取月/年耗时，零改动时间簿代码；关闭后自动降级为纯日记复盘</div>
+            </div>
+            <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:800;cursor:pointer;flex:none">
+              <input type="checkbox" id="tbEnabledChk" ${state.timebookConfig.enabled?"checked":""} style="width:18px;height:18px" />
+              <span>${state.timebookConfig.enabled?"已联动":"已关闭"}</span>
+            </label>
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="tbUrlInput">时间簿局域网地址</label>
+            <input class="form-input" id="tbUrlInput" value="${escHtml(state.timebookConfig.url)}" placeholder="例如 http://192.168.31.10:3210" />
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="tbPwdInput">时间簿访问口令（服务端加密保存）</label>
+            <div style="display:flex;gap:6px">
+              <input class="form-input" id="tbPwdInput" type="${state.timebookConfig.showPwd?"text":"password"}" value="${escHtml(state.timebookConfig.password)}" placeholder="请输入时间簿访问口令" />
+              <button class="btn btn-soft" id="tbTogglePwdBtn" style="height:38px;white-space:nowrap">${state.timebookConfig.showPwd?"隐藏":"显示"}</button>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+            <label style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-3);font-weight:700;cursor:pointer">
+              <input type="checkbox" id="tbSimErrChk" ${state.timebookConfig.simulateError?"checked":""} />
+              <span>模拟时间簿离线/口令失效</span>
+            </label>
+            <button class="btn btn-dark" id="tbTestConnBtn" style="height:36px;font-size:12.5px">${state.timebookConfig.connStatus==="testing"?"正在测试读取…":"⚡ 检测时间簿连通性"}</button>
+          </div>
+          ${state.timebookConfig.connStatus==="ok" ? `<div class="conn-result ok">✓ ${escHtml(state.timebookConfig.connMsg)}</div>` : ""}
+          ${state.timebookConfig.connStatus==="error" ? `<div class="conn-result err">✕ ${escHtml(state.timebookConfig.connMsg)}</div>` : ""}
+        </div>
+      `;
+
+      const tb = state.timebookConfig;
+      document.getElementById("tbEnabledChk").onchange = (e) => {
+        tb.enabled = e.target.checked;
+        renderSettingsTabBody();
+        render();
+        showToast(tb.enabled ? "已开启时间簿联动，月度/年度复盘已融合客观耗时" : "已关闭时间簿联动，统计页平滑降级为纯日记视角");
+      };
+      document.getElementById("tbUrlInput").oninput = (e) => { tb.url = e.target.value; };
+      document.getElementById("tbPwdInput").oninput = (e) => { tb.password = e.target.value; };
+      document.getElementById("tbTogglePwdBtn").onclick = () => { tb.showPwd = !tb.showPwd; renderSettingsTabBody(); };
+      document.getElementById("tbSimErrChk").onchange = (e) => { tb.simulateError = e.target.checked; };
+      document.getElementById("tbTestConnBtn").onclick = () => {
+        if(!tb.url.trim() || !tb.password.trim()){
+          tb.connStatus = "error";
+          tb.connMsg = "请先填写时间簿服务地址与访问口令。";
+          renderSettingsTabBody();
+          return;
+        }
+        tb.connStatus = "testing";
+        renderSettingsTabBody();
+        setTimeout(() => {
+          if(tb.simulateError){
+            tb.connStatus = "error";
+            tb.connMsg = "无法读取时间簿同步接口（模拟离线或口令失效）：统计页将自动保持纯日记复盘，不影响写日记与本地功能。";
+          } else {
+            tb.connStatus = "ok";
+            tb.connMsg = "只读连接成功！已读取到 4 个时间簿模块与最近月份投入汇总（响应耗时 48 毫秒）。";
+          }
+          renderSettingsTabBody();
+        }, 360);
+      };
+
+      document.getElementById("aiEnabledChk").onchange = (e) => {
+        ai.enabled = e.target.checked;
+        renderSettingsTabBody();
+        render();
+        showToast(ai.enabled ? "已开启智能摘要与回忆问答" : "已关闭模型服务，全部视图平滑降级展示原文");
+      };
+      body.querySelectorAll("[data-ai-provider]").forEach(b => {
+        b.onclick = () => {
+          const p = b.dataset.aiProvider;
+          ai.provider = p;
+          ai.baseUrl = providerPresets[p].url;
+          ai.modelId = providerPresets[p].model;
+          ai.connStatus = "idle";
+          ai.connMsg = "";
+          renderSettingsTabBody();
+        };
+      });
+      document.getElementById("aiBaseUrlInput").oninput = (e) => { ai.baseUrl = e.target.value; };
+      document.getElementById("aiKeyInput").oninput = (e) => { ai.apiKey = e.target.value; };
+      document.getElementById("aiModelInput").oninput = (e) => { ai.modelId = e.target.value; };
+      document.getElementById("aiToggleKeyBtn").onclick = () => { ai.showKey = !ai.showKey; renderSettingsTabBody(); };
+      document.getElementById("aiSimErrChk").onchange = (e) => { ai.simulateError = e.target.checked; };
+      document.getElementById("aiTestConnBtn").onclick = () => {
+        if(!ai.baseUrl.trim() || !ai.apiKey.trim() || !ai.modelId.trim()){
+          ai.connStatus = "error";
+          ai.connMsg = "请先填写完整的接口地址、接口密钥与模型标识。";
+          renderSettingsTabBody();
+          return;
+        }
+        ai.connStatus = "testing";
+        renderSettingsTabBody();
+        setTimeout(() => {
+          if(ai.simulateError){
+            ai.connStatus = "error";
+            ai.connMsg = `连接失败（模拟 401/超时）：请核对「${providerPresets[ai.provider].label}」接口密钥权限、地址路径或绿联容器外网出口。`;
+          } else {
+            ai.connStatus = "ok";
+            ai.connMsg = `握手成功！已通过「${providerPresets[ai.provider].label}」连通模型 ${ai.modelId}（响应延迟 320 毫秒）。`;
+          }
+          renderSettingsTabBody();
+        }, 420);
+      };
+      document.getElementById("aiBatchBtn").onclick = () => {
+        if(ai.batchDone >= ai.batchTotal){
+          showToast("全部历史日记已完成摘要缓存");
+          return;
+        }
+        if(ai.batchRunning){
+          stopBatchTimer();
+          renderSettingsTabBody();
+          showToast(`已暂停，进度已安全保留在 ${ai.batchDone} 篇`);
+        } else {
+          ai.batchRunning = true;
+          renderSettingsTabBody();
+          batchTimer = setInterval(() => {
+            if(ai.batchDone >= ai.batchTotal){
+              stopBatchTimer();
+              renderSettingsTabBody();
+              showToast("🎉 全部 1,244 篇历史智能概要补齐完成！");
+              return;
+            }
+            ai.batchDone = Math.min(ai.batchTotal, ai.batchDone + 29);
+            renderSettingsTabBody();
+          }, 260);
+        }
+      };
+      const resetBatchBtn = document.getElementById("aiBatchResetBtn");
+      if(resetBatchBtn) resetBatchBtn.onclick = () => { stopBatchTimer(); ai.batchDone = 896; renderSettingsTabBody(); };
+    } else if(activeSettingsTab === "templates"){
+      const tpl = state.templates[0];
+      body.innerHTML = `
+        <div class="sub-card">
+          <div style="font-size:15px;font-weight:800">${escHtml(tpl.name)}（每天新建默认套用）</div>
+          <div style="font-size:12px;color:var(--ink-3);margin:4px 0 12px">增删下方分段标题后，在写作页新建或点「套用模板」会立即生效。</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            ${tpl.sections.map((s, idx) => `
+              <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 12px">
+                <span style="font-size:13px;font-weight:800">H3 · ${escHtml(s)}</span>
+                <button class="btn btn-soft" data-del-sec="${idx}" style="height:26px;padding:0 8px;font-size:12px">删除</button>
+              </div>
+            `).join("")}
+          </div>
+          <div style="display:flex;gap:8px;margin-top:12px">
+            <input id="newSecInput" placeholder="添加新分段，如：今日运动" style="flex:1;height:36px;border-radius:10px;border:1px solid var(--border);background:var(--surface);padding:0 12px;font-size:13px">
+            <button class="btn btn-dark" id="addSecBtn" style="height:36px">添加分段</button>
+          </div>
+        </div>
+      `;
+      body.querySelectorAll("[data-del-sec]").forEach(b => {
+        b.onclick = () => {
+          tpl.sections.splice(Number(b.dataset.delSec), 1);
+          renderSettingsTabBody();
+          showToast("已更新默认日记分段模板");
+        };
+      });
+      document.getElementById("addSecBtn").onclick = () => {
+        const v = document.getElementById("newSecInput").value.trim();
+        if(!v) return;
+        tpl.sections.push(v);
+        renderSettingsTabBody();
+        showToast(`已新增模板分段：${v}`);
+      };
+    } else if(activeSettingsTab === "tags"){
+      body.innerHTML = `
+        <div class="sub-card">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px">
+            <div style="font-size:15px;font-weight:800">标签管理（${state.tags.length} 个）</div>
+            <span style="font-size:11.5px;color:var(--ink-3);font-weight:700">删除前强制选替代标签 · 绝不删日记</span>
+          </div>
+          <div style="display:flex;gap:6px;margin-bottom:10px">
+            <input id="newTagNameInput" class="form-input" placeholder="输入新标签名，如：家庭时光" style="height:34px" />
+            <button class="btn btn-dark" id="addTagBtn" style="height:34px;white-space:nowrap">+ 新增标签</button>
+          </div>
+          <div>
+            ${state.tags.map(t => `
+              <div class="manage-row">
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                  ${editingTagId === t.id ? `
+                    <input class="form-input" data-rename-tag-input="${t.id}" value="${escHtml(t.name)}" style="height:30px;width:128px" />
+                    <button class="btn btn-primary" data-save-tag-name="${t.id}" style="height:28px;padding:0 10px;font-size:12px">保存</button>
+                    <button class="btn btn-soft" data-cancel-tag-edit style="height:28px;padding:0 8px;font-size:12px">取消</button>
+                  ` : `
+                    ${tagBadgeHtml(t.name)}
+                    <span class="num" style="font-size:12px;color:var(--ink-3);font-weight:700">${t.count} 篇</span>
+                    ${t.enabled===false ? `<span class="raw-badge">已停用</span>` : ""}
+                  `}
+                </div>
+                <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
+                  <div class="color-dots" title="切换标签颜色">
+                    ${TAG_PALETTE.slice(0,5).map((p, pIdx) => `<button class="color-dot-btn ${t.color===p.color?"active":""}" data-tag-color="${t.id}:${pIdx}" style="background:${p.color}" title="${p.name}"></button>`).join("")}
+                    <button class="btn btn-soft" data-tag-nextcolor="${t.id}" style="height:22px;padding:0 6px;font-size:11px" title="轮换 10 套精选色">换色</button>
+                  </div>
+                  <button class="btn btn-soft" data-edit-tag="${t.id}" style="height:26px;padding:0 8px;font-size:11.5px">改名</button>
+                  <button class="btn btn-soft" data-toggle-tag="${t.id}" style="height:26px;padding:0 8px;font-size:11.5px">${t.enabled===false?"启用":"停用"}</button>
+                  <button class="btn btn-danger-soft" data-del-tag="${t.id}" style="height:26px;padding:0 8px;font-size:11.5px">删除</button>
+                </div>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+
+        <div class="sub-card">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px">
+            <div style="font-size:15px;font-weight:800">心情字典管理（${state.moods.length} 档核心心情）</div>
+            <span style="font-size:11.5px;color:var(--ink-3);font-weight:700">支持单选与复合多选</span>
+          </div>
+          <div style="display:flex;gap:6px;margin-bottom:10px">
+            <input id="newMoodEmojiInput" class="form-input" placeholder="表情" value="🌟" style="height:34px;width:62px;text-align:center" />
+            <input id="newMoodNameInput" class="form-input" placeholder="心情词，如：期待" style="height:34px" />
+            <button class="btn btn-dark" id="addMoodBtn" style="height:34px;white-space:nowrap">+ 新增心情</button>
+          </div>
+          <div>
+            ${state.moods.map(m => `
+              <div class="manage-row">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <span style="width:10px;height:10px;border-radius:50%;background:${m.tone};display:inline-block"></span>
+                  ${editingMoodId === m.id ? `
+                    <input class="form-input" data-edit-memoji="${m.id}" value="${escHtml(m.emoji)}" style="height:28px;width:54px;text-align:center" />
+                    <input class="form-input" data-edit-mname="${m.id}" value="${escHtml(m.name)}" style="height:28px;width:96px" />
+                    <button class="btn btn-primary" data-save-mood="${m.id}" style="height:28px;padding:0 9px;font-size:12px">保存</button>
+                  ` : `
+                    <span style="font-size:13.5px;font-weight:800">${escHtml(m.label)}</span>
+                    <span class="num" style="font-size:12px;color:var(--ink-3)">${m.count||0} 次</span>
+                  `}
+                </div>
+                <div style="display:flex;gap:5px">
+                  <button class="btn btn-soft" data-edit-mood="${m.id}" style="height:26px;padding:0 8px;font-size:11.5px">编辑</button>
+                  <button class="btn btn-danger-soft" data-del-mood="${m.id}" style="height:26px;padding:0 8px;font-size:11.5px">删除</button>
+                </div>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      `;
+
+      document.getElementById("addTagBtn").onclick = () => {
+        const name = document.getElementById("newTagNameInput").value.trim();
+        if(!name) return;
+        if(state.tags.some(t => t.name === name)){ showToast("已存在同名标签"); return; }
+        const pal = TAG_PALETTE[state.tags.length % TAG_PALETTE.length];
+        state.tags.push({ id: "t-" + Date.now(), name, ...pal, count: 0, enabled: true });
+        renderSettingsTabBody();
+        render();
+        showToast(`已新增标签「${name}」`);
+      };
+      body.querySelectorAll("[data-tag-color]").forEach(btn => {
+        btn.onclick = () => {
+          const [tid, pidx] = btn.dataset.tagColor.split(":");
+          const t = state.tags.find(x => x.id === tid);
+          const pal = TAG_PALETTE[Number(pidx)];
+          if(t && pal){ Object.assign(t, pal); renderSettingsTabBody(); render(); }
+        };
+      });
+      body.querySelectorAll("[data-tag-nextcolor]").forEach(btn => {
+        btn.onclick = () => {
+          const t = state.tags.find(x => x.id === btn.dataset.tagNextcolor);
+          if(!t) return;
+          const curIdx = TAG_PALETTE.findIndex(p => p.color === t.color);
+          const nextPal = TAG_PALETTE[(curIdx + 1) % TAG_PALETTE.length];
+          Object.assign(t, nextPal);
+          renderSettingsTabBody();
+          render();
+          showToast(`已将「${t.name}」切换为${nextPal.name}`);
+        };
+      });
+      body.querySelectorAll("[data-edit-tag]").forEach(btn => {
+        btn.onclick = () => { editingTagId = btn.dataset.editTag; renderSettingsTabBody(); };
+      });
+      body.querySelectorAll("[data-cancel-tag-edit]").forEach(btn => {
+        btn.onclick = () => { editingTagId = null; renderSettingsTabBody(); };
+      });
+      body.querySelectorAll("[data-save-tag-name]").forEach(btn => {
+        btn.onclick = () => {
+          const tid = btn.dataset.saveTagName;
+          const t = state.tags.find(x => x.id === tid);
+          const inp = body.querySelector(`[data-rename-tag-input="${tid}"]`);
+          const newName = inp ? inp.value.trim() : "";
+          if(!t || !newName) return;
+          if(state.tags.some(x => x.id !== tid && x.name === newName)){ showToast("标签名称重复"); return; }
+          const oldName = t.name;
+          t.name = newName;
+          state.entries.forEach(e => { e.tags = e.tags.map(x => x === oldName ? newName : x); });
+          state.editor.tags = state.editor.tags.map(x => x === oldName ? newName : x);
+          if(state.histTag === oldName) state.histTag = newName;
+          editingTagId = null;
+          renderSettingsTabBody();
+          render();
+          showToast(`已重命名为「${newName}」`);
+        };
+      });
+      body.querySelectorAll("[data-toggle-tag]").forEach(btn => {
+        btn.onclick = () => {
+          const t = state.tags.find(x => x.id === btn.dataset.toggleTag);
+          if(!t) return;
+          t.enabled = t.enabled === false ? true : false;
+          renderSettingsTabBody();
+          render();
+          showToast(t.enabled ? `已启用「${t.name}」` : `已停用「${t.name}」（历史日记仍保留展示）`);
+        };
+      });
+      body.querySelectorAll("[data-del-tag]").forEach(btn => {
+        btn.onclick = () => {
+          const t = state.tags.find(x => x.id === btn.dataset.delTag);
+          if(!t) return;
+          if(t.count <= 0){
+            if(state.tags.length <= 1){ showToast("至少保留 1 个标签"); return; }
+            state.tags = state.tags.filter(x => x.id !== t.id);
+            renderSettingsTabBody();
+            render();
+            showToast(`已删除空标签「${t.name}」`);
+          } else {
+            openTagMigrateModal(t);
+          }
+        };
+      });
+
+      document.getElementById("addMoodBtn").onclick = () => {
+        const em = document.getElementById("newMoodEmojiInput").value.trim() || "🙂";
+        const nm = document.getElementById("newMoodNameInput").value.trim();
+        if(!nm) return;
+        const label = `${em} ${nm}`;
+        if(state.moods.some(m => m.label === label)){ showToast("已存在相同心情"); return; }
+        const tones = ["#22C55E","#F59E0B","#64748B","#8B5CF6","#3B82F6","#F97316","#EF4444","#BE123C"];
+        state.moods.push({ id: "m-" + Date.now(), emoji: em, name: nm, label, tone: tones[state.moods.length % tones.length], level: 3, count: 0 });
+        renderSettingsTabBody();
+        render();
+        showToast(`已新增心情「${label}」`);
+      };
+      body.querySelectorAll("[data-edit-mood]").forEach(btn => {
+        btn.onclick = () => { editingMoodId = btn.dataset.editMood; renderSettingsTabBody(); };
+      });
+      body.querySelectorAll("[data-save-mood]").forEach(btn => {
+        btn.onclick = () => {
+          const mid = btn.dataset.saveMood;
+          const m = state.moods.find(x => x.id === mid);
+          const em = body.querySelector(`[data-edit-memoji="${mid}"]`).value.trim() || m.emoji;
+          const nm = body.querySelector(`[data-edit-mname="${mid}"]`).value.trim() || m.name;
+          const oldLabel = m.label;
+          const newLabel = `${em} ${nm}`;
+          m.emoji = em; m.name = nm; m.label = newLabel;
+          state.entries.forEach(e => { e.moods = e.moods.map(x => x === oldLabel ? newLabel : x); });
+          state.editor.moods = state.editor.moods.map(x => x === oldLabel ? newLabel : x);
+          if(state.histMood === oldLabel) state.histMood = newLabel;
+          editingMoodId = null;
+          renderSettingsTabBody();
+          render();
+          showToast(`已更新心情为「${newLabel}」`);
+        };
+      });
+      body.querySelectorAll("[data-del-mood]").forEach(btn => {
+        btn.onclick = () => {
+          const m = state.moods.find(x => x.id === btn.dataset.delMood);
+          if(!m) return;
+          if((m.count || 0) <= 0){
+            if(state.moods.length <= 1){ showToast("至少保留 1 项心情"); return; }
+            state.moods = state.moods.filter(x => x.id !== m.id);
+            renderSettingsTabBody();
+            render();
+            showToast(`已删除心情「${m.label}」`);
+          } else {
+            openMoodMigrateModal(m);
+          }
+        };
+      });
+    } else if(activeSettingsTab === "import"){
+      const imp = state.importDemo;
+      body.innerHTML = `
+        <div class="sub-card">
+          <div style="font-size:15px;font-weight:800">从原平台导出压缩包一键无损导入</div>
+          <div style="font-size:12px;color:var(--ink-3);margin-top:4px;line-height:1.6">在原平台点「导出 → 包含全部子页面的通用文本与表格压缩包」，上传后本向导将本地自动完成解析与核对。</div>
+          ${imp.step === 1 ? `
+            <div style="margin-top:14px;padding:24px;border:1.5px dashed var(--border-strong);border-radius:14px;text-align:center;background:var(--surface)">
+              <div style="font-size:14px;font-weight:800;margin-bottom:8px">体验导入核对流程</div>
+              <button class="btn btn-primary" id="simUploadZipBtn" style="height:40px;font-size:13px">载入模拟 1,244 篇原平台导出包</button>
+            </div>
+          ` : imp.step === 2 ? `
+            <div style="margin-top:14px;padding:14px;border-radius:14px;background:var(--surface);border:1px solid var(--border)">
+              <div style="font-size:13px;font-weight:800;color:var(--ok-ink);margin-bottom:8px">✓ 解析完成，请核对汇总明细：</div>
+              <ul style="margin:0 0 12px;padding-left:18px;font-size:12.5px;line-height:1.8;color:var(--ink-2)">
+                <li>识别有效日记：<b>1,244 篇</b>（2023-06-25 至 2026-11-19）</li>
+                <li>合计正文有效字数：<b>852,980 字</b></li>
+                <li>自动剥离标题重复日期前缀：<b>1,244 篇</b></li>
+                <li>自动跳过无日期空白占位草稿：<b>3 条</b></li>
+                <li>匹配标签 9 项，旧 12 项心情已自动归并至新 8 档核心心情，异常：<b>0 条</b></li>
+              </ul>
+              <div style="padding:10px;border-radius:11px;background:var(--surface-hover);border:1px solid var(--line);margin-bottom:12px">
+                <div style="font-size:12px;font-weight:800;margin-bottom:6px">旧 12 项心情 → 新 8 档自动归并映射表（导入前可核对）</div>
+                <div style="display:flex;flex-direction:column;gap:4px;font-size:11.5px;color:var(--ink-2)">
+                  ${OLD_MOOD_MAP_DEMO.map(row => `
+                    <div style="display:flex;justify-content:space-between;gap:8px">
+                      <span>${escHtml(row.oldLabel)}</span>
+                      <span style="font-weight:800">→ ${escHtml(row.newLabel)}（<span class="num">${row.count}</span> 篇）</span>
+                    </div>
+                  `).join("")}
+                </div>
+              </div>
+              <div style="display:flex;gap:8px">
+                <button class="btn btn-primary" id="simConfirmImpBtn" style="height:38px;font-size:13px;flex:1">确认无损入库</button>
+                <button class="btn btn-soft" id="simResetImpBtn" style="height:38px">取消</button>
+              </div>
+            </div>
+          ` : `
+            <div style="margin-top:14px;padding:14px;border-radius:14px;background:var(--ok-bg);border:1px solid var(--ok-line);color:var(--ok-ink)">
+              <div style="font-size:14px;font-weight:800">🎉 历史搬家已完成（批次 #20261120-01）</div>
+              <div style="font-size:12px;margin:4px 0 12px">1,244 篇日记与标签、8 档心情、全文索引均已入库，可在「模型服务」随时批量补齐智能摘要。</div>
+              <button class="btn btn-danger-soft" id="simUndoImpBtn">按批次一键撤销本次导入</button>
+            </div>
+          `}
+        </div>
+      `;
+      const b1 = document.getElementById("simUploadZipBtn");
+      if(b1) b1.onclick = () => { imp.step = 2; renderSettingsTabBody(); };
+      const b2 = document.getElementById("simConfirmImpBtn");
+      if(b2) b2.onclick = () => { imp.step = 3; renderSettingsTabBody(); showToast("已导入 1,244 篇历史日记（原型演示）"); };
+      const b3 = document.getElementById("simResetImpBtn");
+      if(b3) b3.onclick = () => { imp.step = 1; renderSettingsTabBody(); };
+      const b4 = document.getElementById("simUndoImpBtn");
+      if(b4) b4.onclick = () => { imp.step = 1; renderSettingsTabBody(); showToast("已安全回滚本次导入批次"); };
+    } else if(activeSettingsTab === "backup"){
+      body.innerHTML = `
+        <div class="sub-card">
+          <div style="font-size:14px;font-weight:800">每日自动双备份（绿联挂载目录 /data/backups）</div>
+          <div style="font-size:12px;color:var(--ink-3);margin:6px 0 12px;line-height:1.6">每晚自动在线热备数据库文件并保留最近 30 份；每周额外输出通用可读文本备份压缩包，彻底摆脱平台锁定。</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            <button class="btn btn-dark" id="expJsonBtn" style="height:36px">导出全量数据包</button>
+            <button class="btn btn-soft" id="expMdBtn" style="height:36px">导出纯文本压缩包</button>
+          </div>
+        </div>
+        <div class="sub-card">
+          <div style="font-size:14px;font-weight:800;margin-bottom:8px">30 天回收站（${state.trash.length} 篇）</div>
+          ${state.trash.length ? state.trash.map((tr, i) => `
+            <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:6px">
+              <div>
+                <div style="font-size:13px;font-weight:800">${escHtml(tr.date)} · ${escHtml(tr.title)}</div>
+                <div style="font-size:11px;color:var(--ink-3)">${tr.words} 字 · 删除于 ${tr.deletedAt}</div>
+              </div>
+              <button class="btn btn-soft" data-restore-tr="${i}" style="height:30px;padding:0 10px;font-size:12px">恢复</button>
+            </div>
+          `).join("") : `<div style="font-size:12px;color:var(--ink-3)">回收站暂无误删记录。</div>`}
+        </div>
+      `;
+      document.getElementById("expJsonBtn").onclick = () => showToast("已生成全量数据备份包（原型演示）");
+      document.getElementById("expMdBtn").onclick = () => showToast("已生成标准可携纯文本压缩包（原型演示）");
+      body.querySelectorAll("[data-restore-tr]").forEach(b => {
+        b.onclick = () => {
+          const item = state.trash.splice(Number(b.dataset.restoreTr), 1)[0];
+          renderSettingsTabBody();
+          showToast(`已从回收站还原：${item.title}`);
+        };
+      });
+    }
+  }
+
+  /* ================== 全局事件绑定 ================== */
+  document.getElementById("brandBtn").onclick = () => navigate("home");
+  document.querySelectorAll("[data-view]").forEach(btn => {
+    btn.onclick = () => navigate(btn.dataset.view);
+  });
+  document.getElementById("themeToggleBtn").onclick = () => {
+    state.theme = state.theme === "light" ? "dark" : "light";
+    applyThemeAndDevice();
+    render();
+    showToast(state.theme === "dark" ? "已切换至夜间护眼深色模式" : "已切换至浅色护眼模式");
+  };
+  document.querySelectorAll("[data-device-btn]").forEach(btn => {
+    btn.onclick = () => {
+      state.device = btn.dataset.deviceBtn;
+      applyThemeAndDevice();
+      render();
+    };
+  });
+  document.getElementById("syncPillBtn").onclick = () => {
+    state.syncMode = state.syncMode === "ok" ? "syncing" : state.syncMode === "syncing" ? "offline" : "ok";
+    applyThemeAndDevice();
+    showToast(state.syncMode === "ok" ? "模拟：已连接绿联服务端并同步" : state.syncMode === "syncing" ? "模拟：正在同步草稿…" : "模拟：断网中，写作内容自动安全暂存本地");
+  };
+  document.getElementById("openSettingsBtn").onclick = () => openSettingsDrawer();
+
+  window.addEventListener("scroll", () => {
+    topbarWrap.classList.toggle("scrolled", window.scrollY > 8);
+  });
+  appFrame.addEventListener("scroll", () => {
+    topbarWrap.classList.toggle("scrolled", appFrame.scrollTop > 8);
+  });
+  document.addEventListener("mousedown", (e) => {
+    if(!e.target.closest("#slashMenu")) slashMenu.classList.add("hidden");
+    if(!e.target.closest("#floatBar") && !e.target.closest("#editorCanvas")) floatBar.classList.add("hidden");
+  });
+
+  applyThemeAndDevice();
+  updateNavActive();
+  render();
+})();
+</script>
+</body>
+</html>

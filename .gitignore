@@ -1,0 +1,21 @@
+# Local data and credentials
+workspace-data/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+# Dependencies and caches
+node_modules/
+dist/
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.tsbuildinfo
+*.log
