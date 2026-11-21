@@ -12,11 +12,11 @@
    - 被测包路径以 `dev` 在面板交接元数据中给出的 `package_path` 为准（`workspace-data/outputs/lifebook/v0.1.0-R<轮次>/lifebook.zip`）。
    - 父级 `qa` 首先运行 `fde-qa` 技能自带的解压校验器：
      ```powershell
-     python "<fde-qa技能目录>/scripts/unpack_verify.py" --zip "<package_path>" --dest "h:/个人项目/lifebook/workspace-data/tmp/qa/v0.1.0-R<轮次>/pkg"
+     python "<fde-qa技能目录>/scripts/unpack_verify.py" --zip "<package_path>" --dest "<项目根目录>/workspace-data/tmp/qa/v0.1.0-R<轮次>/pkg"
      ```
    - 校验失败直接 `@dev [changes_requested]` 打回“包不完整”。
 2. **包内静态安全与纯净必查项（父级 `qa` 先做）**：
-   - 确认包内无 `.env`（仅允许 `.env.example`）、无 `*.sqlite*`、无真实口令/密钥、无本机用户绝对路径（如 `C:\Users\...` 或 `h:\个人项目\...`）、无硬编码局域网真实 IP、无测试专用默认后门或测试口径语句、且源码与界面文案中彻底不存在「年度人物侧写」字样。
+   - 确认包内无 `.env`（仅允许 `.env.example`）、无 `*.sqlite*`、无真实口令/密钥、无开发机用户/工程绝对路径、无硬编码局域网真实 IP、无测试专用默认后门或测试口径语句、且源码与界面文案中彻底不存在「年度人物侧写」字样。
 3. **一次性环境准备与确定性回归（准备时间单列，不计入单场景业务时长）**：
    - 进入解压后的包目录 `<pkg_dir>` 执行：
      1. `corepack pnpm install`
@@ -61,5 +61,5 @@
 ## 四、授权边界与通过规则
 
 - **允许**：在 `workspace-data/tmp/qa/v0.1.0-R<轮次>/` 下解压安装构建、起本地临时端口（`15200+`）和模拟本地 `HTTP` 服务进行完全隔离测试；向 `docs/deliveries/lifebook-v0.1.0-R<轮次>-test-report.md` 写入七维报告及 `workspace-data/qa/v0.1.0-R<轮次>/metrics.json` 写入计量。
-- **严禁**：修改被测包或项目源码；连接真实绿联 NAS 或真实「时间簿」生产端口；向真实公网大模型地址发起付费请求；访问 `h:\个人项目\lifebook` 以外的其他项目目录；执行不按 `PID` 过滤的全局强杀命令。
+- **严禁**：修改被测包或项目源码；连接真实绿联 NAS 或真实「时间簿」生产端口；向真实公网大模型地址发起付费请求；访问当前项目根目录以外的其他目录；执行不按 `PID` 过滤的全局强杀命令。
 - **通过规则**：包内静态安全检查清白 + `typecheck`/`test`/`build` 100% 通过 + `V1`～`V7` 全部满足判据 + 关键界面截图经 `qa` 亲眼核验无视觉破版或「年度人物侧写」残留 + 无“必须修复”级缺陷且全部临时进程已清理，方可向 `@coordinator [done]` 提交收口。

@@ -2,7 +2,7 @@
 
 结论：**已验收收口**；用户业务确认：**2026-11-21 用户明确选择「在现有第 2 轮基础上让 dev 顺手修复 5 条体验细节，回归验证后收口」及「在本地目录初始化 Git 仓库并完成 v0.1.0 验收基线首次本地提交（不推送远程）」**（见 [讨论纪要](../requirements/lifebook-讨论纪要.md) `C-21`）。
 
-源码、安装副本、包版本与一致性：最终正式交付包为 `workspace-data/outputs/lifebook/v0.1.0-R3/lifebook.zip`（ZIP SHA-256：`9abfb0424343d6851edeb0525f9eb19ee3fb7ca826dc24596f98259690d584bf`，64 个交付文件 + `_release-manifest.json` 共 65 个文件，254,019 字节）；本地基线 `Git` 提交哈希：`待提交回填`。
+源码、安装副本、包版本与一致性：最终正式交付包为 `workspace-data/outputs/lifebook/v0.1.0-R3/lifebook.zip`（ZIP SHA-256：`9abfb0424343d6851edeb0525f9eb19ee3fb7ca826dc24596f98259690d584bf`，64 个交付文件 + `_release-manifest.json` 共 65 个文件，254,019 字节）；本地基线 `Git` 提交哈希：`05549ce02c88e0b6d6682cfebccdb5d376281f43`（分支 `master`，仅本地提交不推送）。
 环境与测试范围：Windows 11 / Node v24.15.0 / pnpm 11.7.0 / Python 3.13.2 / 无头 Chrome（CDP 协议）；已完成全部 64 个交付文件静态安全扫描、`corepack pnpm install -> typecheck -> test -> build` 回归、`R2` 全量 `V1`～`V7` 隔离盲测、`R3` 对 5 项细节修改涉及的 `V1`/`V2` 定向隔离复测及关键截图目视核验；**未测项**：Docker 守护进程实机构建拉起及绿联 `DXP4800 Plus` NAS / 真实「时间簿」`3210` / 公网大模型环境运行。
 
 ---
@@ -39,4 +39,4 @@
 
 - **最终独立发布包**：`workspace-data/outputs/lifebook/v0.1.0-R3/lifebook.zip`（SHA-256：`9abfb0424343d6851edeb0525f9eb19ee3fb7ca826dc24596f98259690d584bf`）
 - **部署与使用指南**：[绿联NAS部署与使用指南](../绿联NAS部署与使用指南.md)（默认监听 `3220`，持久化 `/volume1/docker/lifebook/data`）
-- **本地 `Git` 基线提交**：`待提交回填`（仅本地仓库首次基线存档，不推送远程）
+- **本地 `Git` 基线提交**：`05549ce02c88e0b6d6682cfebccdb5d376281f43`（`master` 分支首次基线存档，共 70 个文件，不推送远程）

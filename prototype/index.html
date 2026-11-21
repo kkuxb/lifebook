@@ -841,7 +841,7 @@ html[data-device="mobile"] .quarter-grid{grid-template-columns:repeat(2,1fr)}
     },
     timebookConfig: {
       enabled: true,
-      url: "http://192.168.31.10:3210",
+      url: "http://nas.local:3210",
       password: "••••••••",
       showPwd: false,
       connStatus: "idle",
@@ -3167,7 +3167,7 @@ html[data-device="mobile"] .quarter-grid{grid-template-columns:repeat(2,1fr)}
           </div>
           <div class="form-field">
             <label class="form-label" for="tbUrlInput">时间簿局域网地址</label>
-            <input class="form-input" id="tbUrlInput" value="${escHtml(state.timebookConfig.url)}" placeholder="例如 http://192.168.31.10:3210" />
+            <input class="form-input" id="tbUrlInput" value="${escHtml(state.timebookConfig.url)}" placeholder="例如 http://nas.local:3210" />
           </div>
           <div class="form-field">
             <label class="form-label" for="tbPwdInput">时间簿访问口令（服务端加密保存）</label>

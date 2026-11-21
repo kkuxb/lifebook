@@ -1,6 +1,6 @@
-# 人生簿（Lifebook）绿联 NAS 部署与使用指南
+# 人生簿（Lifebook）`v0.1.0` 绿联 NAS 部署与使用指南
 
-> 面向绿联 `DXP4800 Plus`（`UGOS Pro`）家庭服务器容器自托管部署，默认服务端口为 **`3220`**（避开同类项目「时间簿」使用的 `3210` 端口），数据全部持久化在宿主目录 `/volume1/docker/lifebook/data`。
+> 面向绿联 `DXP4800 Plus`（`UGOS Pro`）家庭服务器容器自托管部署（基于 `v0.1.0` 正式版本），默认服务端口为 **`3220`**（避开同类项目「时间簿」使用的 `3210` 端口），数据全部持久化在宿主目录 `/volume1/docker/lifebook/data`。
 
 ---
 
@@ -12,9 +12,11 @@
    mkdir -p /volume1/docker/lifebook/data
    ```
 
-2. **上传项目源码与配置环境变量**
-   将项目代码放入 `/volume1/docker/lifebook/app`，在目录内复制示例环境变量文件：
+2. **获取项目源码并配置环境变量**
+   在 NAS 上克隆开源仓库到 `/volume1/docker/lifebook/app`（或直接上传对应发行版源码包并解压进入目录），然后复制示例环境变量文件：
    ```bash
+   git clone https://github.com/kkuxb/lifebook.git /volume1/docker/lifebook/app
+   cd /volume1/docker/lifebook/app
    cp .env.example .env
    ```
    按需编辑 `.env`（也可留空 `APP_PASSWORD`，首次打开网页时在界面上设置口令）：
