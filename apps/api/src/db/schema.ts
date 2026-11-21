@@ -2,7 +2,7 @@ import Database from "better-sqlite3";
 import fs from "node:fs";
 import path from "node:path";
 import { ulid } from "ulid";
-import { DEFAULT_MOODS, DEFAULT_TAGS, DEFAULT_TEMPLATES } from "@lifebook/core";
+import { DEFAULT_MOODS, DEFAULT_TAGS, DEFAULT_TEMPLATES, LEGACY_V010_MOOD_TONES } from "@lifebook/core";
 
 export function tokenizeForFts(text: string): string {
   if (!text) return "";
@@ -275,4 +275,32 @@ function seedDefaults(db: Database.Database): void {
     INSERT INTO heartbeat (id, updated_at) VALUES (1, ?)
     ON CONFLICT(id) DO UPDATE SET updated_at = excluded.updated_at
   `).run(now);
+
+  migrateLegacyMoodTones(db, now);
+}
+
+function migrateLegacyMoodTones(db: Database.Database, now: string): void {
+  const migrated = db
+    .prepare("SELECT value FROM settings WHERE key = 'mood_palette_v011_migrated'")
+    .get() as { value: string } | undefined;
+  if (migrated) return;
+
+  const tx = db.transaction(() => {
+    const findMood = db.prepare("SELECT id, tone FROM moods WHERE name = ?");
+    const updateTone = db.prepare("UPDATE moods SET tone = ?, updated_at = ? WHERE id = ?");
+    for (const m of DEFAULT_MOODS) {
+      const legacyTone = LEGACY_V010_MOOD_TONES[m.name];
+      if (!legacyTone) continue;
+      const row = findMood.get(m.name) as { id: string; tone: string } | undefined;
+      if (row && row.tone.toUpperCase() === legacyTone.toUpperCase()) {
+        updateTone.run(m.tone, now, row.id);
+      }
+    }
+    db.prepare(
+      `INSERT INTO settings (key, value, encrypted, updated_at)
+       VALUES ('mood_palette_v011_migrated', '1', 0, ?)
+       ON CONFLICT(key) DO NOTHING`
+    ).run(now);
+  });
+  tx();
 }

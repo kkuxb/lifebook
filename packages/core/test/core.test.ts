@@ -1,17 +1,21 @@
 import { describe, expect, it } from "vitest";
 import {
   buildMonthlyReviewPrompt,
+  buildSingleEntryDigestPrompt,
   buildYearlyReviewPrompt,
   checkMonthlyUnlock,
   checkYearlyUnlock,
   countWords,
+  DEFAULT_MOODS,
   getShanghaiNowParts,
   isBlankDraftRecord,
+  LEGACY_V010_MOOD_TONES,
   mapOldMoodsToNew,
   markdownToHtml,
   parseCsvRecords,
   resolveConflictEntry,
   scoreHighlightCandidates,
+  SINGLE_DIGEST_MAX_TOKENS,
   stripDatePrefixFromTitle,
   stripHtml,
   validateMonthlyReviewDepth,
@@ -215,5 +219,31 @@ describe("@lifebook/core 纯函数领域测试", () => {
         growth: long320
       }).ok
     ).toBe(true);
+  });
+
+  it("v0.1.1：8 档心情语义色板与单篇摘要词元预算", () => {
+    const byName = new Map(DEFAULT_MOODS.map((m) => [m.name, m.tone]));
+    expect(byName.get("兴奋")).toBe("#FBBF24");
+    expect(byName.get("开心")).toBe("#34D399");
+    expect(byName.get("平静")).toBe("#7DD3FC");
+    expect(byName.get("疲惫")).toBe("#A8A29E");
+    expect(byName.get("焦虑")).toBe("#8B5CF6");
+    expect(byName.get("烦躁")).toBe("#F97316");
+    expect(byName.get("生气")).toBe("#EF4444");
+    expect(byName.get("低落")).toBe("#475569");
+    expect(Object.keys(LEGACY_V010_MOOD_TONES)).toHaveLength(8);
+    expect(LEGACY_V010_MOOD_TONES["平静"]).toBe("#64748B");
+
+    expect(SINGLE_DIGEST_MAX_TOKENS).toBe(1800);
+    const p = buildSingleEntryDigestPrompt({
+      date: "2026-10-03",
+      kind: "daily",
+      title: "沿海散步",
+      moods: ["😄 开心"],
+      tags: ["日常记录"],
+      contentText: "吹海风"
+    });
+    expect(p.system).toContain("<think>");
+    expect(p.system).toContain("直角引号");
   });
 });

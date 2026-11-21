@@ -243,15 +243,26 @@ export const DEFAULT_TAGS: Omit<TagItem, "id">[] = [
   { ...TAG_PALETTE[8], name: "年度复盘", colorKey: TAG_PALETTE[8].key, enabled: true, sort: 9 }
 ];
 
+export const LEGACY_V010_MOOD_TONES: Record<string, string> = {
+  开心: "#22C55E",
+  兴奋: "#F59E0B",
+  平静: "#64748B",
+  疲惫: "#8B5CF6",
+  焦虑: "#3B82F6",
+  烦躁: "#F97316",
+  生气: "#EF4444",
+  低落: "#BE123C"
+};
+
 export const DEFAULT_MOODS: Omit<MoodItem, "id">[] = [
-  { emoji: "😄", name: "开心", label: "😄 开心", tone: "#22C55E", level: 4, sort: 1 },
-  { emoji: "🥰", name: "兴奋", label: "🥰 兴奋", tone: "#F59E0B", level: 4, sort: 2 },
-  { emoji: "😌", name: "平静", label: "😌 平静", tone: "#64748B", level: 3, sort: 3 },
-  { emoji: "😮‍💨", name: "疲惫", label: "😮‍💨 疲惫", tone: "#8B5CF6", level: 2, sort: 4 },
-  { emoji: "😰", name: "焦虑", label: "😰 焦虑", tone: "#3B82F6", level: 1, sort: 5 },
+  { emoji: "😄", name: "开心", label: "😄 开心", tone: "#34D399", level: 4, sort: 1 },
+  { emoji: "🥰", name: "兴奋", label: "🥰 兴奋", tone: "#FBBF24", level: 4, sort: 2 },
+  { emoji: "😌", name: "平静", label: "😌 平静", tone: "#7DD3FC", level: 3, sort: 3 },
+  { emoji: "😮‍💨", name: "疲惫", label: "😮‍💨 疲惫", tone: "#A8A29E", level: 2, sort: 4 },
+  { emoji: "😰", name: "焦虑", label: "😰 焦虑", tone: "#8B5CF6", level: 1, sort: 5 },
   { emoji: "😤", name: "烦躁", label: "😤 烦躁", tone: "#F97316", level: 1, sort: 6 },
   { emoji: "😠", name: "生气", label: "😠 生气", tone: "#EF4444", level: 1, sort: 7 },
-  { emoji: "😢", name: "低落", label: "😢 低落", tone: "#BE123C", level: 1, sort: 8 }
+  { emoji: "😢", name: "低落", label: "😢 低落", tone: "#475569", level: 1, sort: 8 }
 ];
 
 export const OLD_12_TO_NEW_8_MOOD_MAP: Record<string, string> = {

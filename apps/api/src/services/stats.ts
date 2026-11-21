@@ -112,7 +112,7 @@ export function getHeatmap(
       shortTitle: r.short_title || "",
       aiReady: Boolean(r.short_title),
       mood,
-      moodTone: moodToneMap.get(mood) ?? "#64748B",
+      moodTone: moodToneMap.get(mood) ?? "#7DD3FC",
       tags: tagsMap.get(r.id) ?? []
     };
   }

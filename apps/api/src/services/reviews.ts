@@ -7,6 +7,7 @@ import {
   checkMonthlyUnlock,
   checkYearlyUnlock,
   scoreHighlightCandidates,
+  SINGLE_DIGEST_MAX_TOKENS,
   validateMonthlyReviewDepth,
   validateYearlyReviewDepth,
   verifyAndMergeHighlights,
@@ -25,6 +26,23 @@ import { fetchTimebookSummary } from "./timebook-sync.js";
 
 export function computeDigestHash(entry: { title: string; contentText: string }): string {
   return sha256(`${entry.title}\n${entry.contentText}`);
+}
+
+function isNonRetryableAiError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  return /(401|403|密钥|认证失败|未开启|无效的)/.test(msg);
+}
+
+interface ParsedEntryDigestPayload {
+  shortTitle?: string;
+  summary?: string;
+  dimLife?: string;
+  dimWork?: string;
+  dimLeisure?: string;
+  dimPeopleNotes?: string;
+  keyEvents?: Array<{ title: string; importance: number; nature?: string }>;
+  topics?: string[];
+  reflection?: string;
 }
 
 export async function generateAndCacheEntryDigest(
@@ -56,24 +74,36 @@ export async function generateAndCacheEntryDigest(
     contentText: entry.contentText
   });
 
-  const res = await callAiCompletion(cfg, {
-    system: prompt.system,
-    messages: [{ role: "user", content: prompt.user }],
-    maxTokens: 900,
-    temperature: 0.2
-  });
+  const retryDelaysMs = [400, 900];
+  let parsed: ParsedEntryDigestPayload | null = null;
+  let lastErr: unknown = null;
 
-  const parsed = extractJsonFromAiText<{
-    shortTitle?: string;
-    summary?: string;
-    dimLife?: string;
-    dimWork?: string;
-    dimLeisure?: string;
-    dimPeopleNotes?: string;
-    keyEvents?: Array<{ title: string; importance: number; nature?: string }>;
-    topics?: string[];
-    reflection?: string;
-  }>(res.contentText);
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const userContent =
+        attempt === 1
+          ? prompt.user
+          : `${prompt.user}\n\n【格式纠错重试】上一次返回的 JSON 存在语法错误，请务必只输出一个完整的合法 JSON 对象：字符串内部勿使用未转义英文双引号 "（请用「」替代），数组项之间务必用英文逗号分隔且末尾不留逗号。`;
+      const res = await callAiCompletion(cfg, {
+        system: prompt.system,
+        messages: [{ role: "user", content: userContent }],
+        maxTokens: SINGLE_DIGEST_MAX_TOKENS,
+        temperature: attempt === 1 ? 0.2 : 0.1
+      });
+      parsed = extractJsonFromAiText<ParsedEntryDigestPayload>(res.contentText);
+      break;
+    } catch (err) {
+      lastErr = err;
+      if (attempt === 3 || isNonRetryableAiError(err)) {
+        throw err;
+      }
+      await new Promise((r) => setTimeout(r, retryDelaysMs[attempt - 1] ?? 600));
+    }
+  }
+
+  if (!parsed) {
+    throw lastErr instanceof Error ? lastErr : new Error("生成日概要失败");
+  }
 
   const now = new Date().toISOString();
   const digest: EntryAiDigest = {
@@ -127,6 +157,12 @@ export async function generateAndCacheEntryDigest(
   return digest;
 }
 
+export interface BatchFailedItem {
+  date: string;
+  entryId: string;
+  error: string;
+}
+
 interface BatchState {
   running: boolean;
   paused: boolean;
@@ -135,6 +171,7 @@ interface BatchState {
   failed: number;
   lastError: string;
   currentDate: string;
+  failedItems: BatchFailedItem[];
 }
 
 const batchState: BatchState = {
@@ -144,7 +181,8 @@ const batchState: BatchState = {
   done: 0,
   failed: 0,
   lastError: "",
-  currentDate: ""
+  currentDate: "",
+  failedItems: []
 };
 
 export function getBatchDigestStatus(db: Database.Database): BatchState {
@@ -169,6 +207,7 @@ export function getBatchDigestStatus(db: Database.Database): BatchState {
 
   return {
     ...batchState,
+    failedItems: [...batchState.failedItems],
     total: totalRow.c,
     done: cachedCount
   };
@@ -193,6 +232,7 @@ export function startBatchDigest(db: Database.Database, masterKey: Buffer): Batc
   batchState.paused = false;
   batchState.failed = 0;
   batchState.lastError = "";
+  batchState.failedItems = [];
 
   const rows = db
     .prepare(
@@ -222,8 +262,16 @@ export function startBatchDigest(db: Database.Database, masterKey: Buffer): Batc
         try {
           await generateAndCacheEntryDigest(db, masterKey, item.id, false);
         } catch (err) {
+          const errMsg = err instanceof Error ? err.message : String(err);
           batchState.failed += 1;
-          batchState.lastError = err instanceof Error ? err.message : String(err);
+          batchState.lastError = `${item.date}：${errMsg}`;
+          if (batchState.failedItems.length < 20) {
+            batchState.failedItems.push({
+              date: item.date,
+              entryId: item.id,
+              error: errMsg
+            });
+          }
         }
         await new Promise((r) => setTimeout(r, 15));
       }

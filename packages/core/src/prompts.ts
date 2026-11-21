@@ -1,6 +1,7 @@
 import type { ScoredHighlightCandidate } from "./highlights.js";
 import type { TimebookSummary } from "./index.js";
 
+export const SINGLE_DIGEST_MAX_TOKENS = 1800;
 export const MONTHLY_REVIEW_MAX_TOKENS = 3000;
 export const YEARLY_REVIEW_MAX_TOKENS = 5000;
 export const QA_MAX_TOOL_ROUNDS = 4;
@@ -16,7 +17,8 @@ export function buildSingleEntryDigestPrompt(input: {
 }): { system: string; user: string } {
   return {
     system: [
-      "你是私密个人日记工具「人生簿」的结构化整理助手。请严格用中文简体客观提炼单篇日记的结构化日概要，只输出合法 JSON 对象，不要输出 Markdown 代码围栏以外的多余解释。",
+      "你是私密个人日记工具「人生簿」的结构化整理助手。请严格用中文简体客观提炼单篇日记的结构化日概要，只输出一个合法 JSON 对象，绝对不要输出 <think> 思考过程或 JSON 以外的任何说明文字。",
+      "格式铁律：所有字符串值内部严禁使用未转义的英文双引号 \"，引用原话或专名时一律改用中文直角引号「」或《》；数组元素之间务必规范逗号分隔，绝不留尾逗号。",
       "质量要求：总有效提炼约 220~320 字，保留真实具体事实与细节，杜绝空泛口号。",
       "JSON 字段格式：",
       `{

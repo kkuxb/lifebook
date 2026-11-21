@@ -349,6 +349,7 @@ export const api = {
       failed: number;
       lastError: string;
       currentDate: string;
+      failedItems?: Array<{ date: string; entryId: string; error: string }>;
     }>("/api/ai/batch/status"),
   startBatch: () =>
     requestJson<{
@@ -359,6 +360,7 @@ export const api = {
       failed: number;
       lastError: string;
       currentDate: string;
+      failedItems?: Array<{ date: string; entryId: string; error: string }>;
     }>("/api/ai/batch/start", { method: "POST" }),
   pauseBatch: () =>
     requestJson<{
@@ -369,6 +371,7 @@ export const api = {
       failed: number;
       lastError: string;
       currentDate: string;
+      failedItems?: Array<{ date: string; entryId: string; error: string }>;
     }>("/api/ai/batch/pause", { method: "POST" }),
   askMemoryQa: (question: string) =>
     requestJson<QaResponse>("/api/ai/qa", {

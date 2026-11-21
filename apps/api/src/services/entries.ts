@@ -150,6 +150,10 @@ export interface ListEntriesQuery {
   kind?: string;
   tag?: string;
   mood?: string;
+  sortBy?: "date_desc" | "date_asc" | "words_desc" | "words_asc";
+  minWords?: number;
+  maxWords?: number;
+  fuzzyTagMood?: boolean;
   page?: number;
   pageSize?: number;
 }
@@ -182,36 +186,73 @@ export function listEntries(
     params.push(query.endDate);
   }
   if (query.tag && query.tag !== "all") {
-    where.push(
-      `EXISTS (SELECT 1 FROM entry_tags et JOIN tags t ON t.id = et.tag_id WHERE et.entry_id = e.id AND (t.name = ? OR t.id = ?))`
-    );
-    params.push(query.tag, query.tag);
+    if (query.fuzzyTagMood) {
+      where.push(
+        `EXISTS (SELECT 1 FROM entry_tags et JOIN tags t ON t.id = et.tag_id WHERE et.entry_id = e.id AND (t.name = ? OR t.id = ? OR t.name LIKE ?))`
+      );
+      params.push(query.tag, query.tag, `%${query.tag}%`);
+    } else {
+      where.push(
+        `EXISTS (SELECT 1 FROM entry_tags et JOIN tags t ON t.id = et.tag_id WHERE et.entry_id = e.id AND (t.name = ? OR t.id = ?))`
+      );
+      params.push(query.tag, query.tag);
+    }
   }
   if (query.mood && query.mood !== "all") {
-    where.push(
-      `EXISTS (SELECT 1 FROM entry_moods em JOIN moods m ON m.id = em.mood_id WHERE em.entry_id = e.id AND (m.label = ? OR m.id = ? OR m.name = ?))`
-    );
-    params.push(query.mood, query.mood, query.mood);
+    if (query.fuzzyTagMood) {
+      where.push(
+        `EXISTS (SELECT 1 FROM entry_moods em JOIN moods m ON m.id = em.mood_id WHERE em.entry_id = e.id AND (m.label = ? OR m.id = ? OR m.name = ? OR m.label LIKE ?))`
+      );
+      params.push(query.mood, query.mood, query.mood, `%${query.mood}%`);
+    } else {
+      where.push(
+        `EXISTS (SELECT 1 FROM entry_moods em JOIN moods m ON m.id = em.mood_id WHERE em.entry_id = e.id AND (m.label = ? OR m.id = ? OR m.name = ?))`
+      );
+      params.push(query.mood, query.mood, query.mood);
+    }
+  }
+  if (typeof query.minWords === "number" && Number.isFinite(query.minWords)) {
+    where.push("e.word_count >= ?");
+    params.push(Math.max(0, Math.floor(query.minWords)));
+  }
+  if (typeof query.maxWords === "number" && Number.isFinite(query.maxWords)) {
+    where.push("e.word_count <= ?");
+    params.push(Math.max(0, Math.floor(query.maxWords)));
   }
 
   const q = (query.q ?? "").trim();
   if (q) {
-    const ftsQuery = buildFtsMatchQuery(q);
-    if (ftsQuery) {
-      where.push(
-        `e.id IN (SELECT entry_id FROM entries_fts WHERE entries_fts MATCH ?)`
-      );
-      params.push(ftsQuery);
+    const terms = [...new Set(q.split(/\s+/).filter(Boolean))].slice(0, 6);
+    const ftsParts: string[] = [];
+    for (const term of terms) {
+      // 纯数字/日期片段可能只出现在 e.date 列而不在 FTS5 正文索引里，不强加进 FTS AND 条件
+      if (!/^\d{2,4}(-\d{1,2}){0,2}$/.test(term)) {
+        const fq = buildFtsMatchQuery(term);
+        if (fq) ftsParts.push(fq);
+      }
+      const likePattern = `%${term}%`;
+      where.push(`(e.title LIKE ? OR e.content_text LIKE ? OR e.date LIKE ?)`);
+      params.push(likePattern, likePattern, likePattern);
     }
-    const likePattern = `%${q}%`;
-    where.push(`(e.title LIKE ? OR e.content_text LIKE ? OR e.date LIKE ?)`);
-    params.push(likePattern, likePattern, likePattern);
+    if (ftsParts.length > 0) {
+      where.push(`e.id IN (SELECT entry_id FROM entries_fts WHERE entries_fts MATCH ?)`);
+      params.push([...new Set(ftsParts)].join(" AND "));
+    }
   }
 
   const whereSql = where.join(" AND ");
   const statsRow = db
     .prepare(`SELECT COUNT(*) as total, COALESCE(SUM(e.word_count), 0) as totalWords FROM entries e WHERE ${whereSql}`)
     .get(...params) as { total: number; totalWords: number };
+
+  const orderSql =
+    query.sortBy === "date_asc"
+      ? "e.date ASC, e.updated_at ASC"
+      : query.sortBy === "words_desc"
+        ? "e.word_count DESC, e.date DESC"
+        : query.sortBy === "words_asc"
+          ? "e.word_count ASC, e.date DESC"
+          : "e.date DESC, e.updated_at DESC";
 
   const page = Math.max(1, Number(query.page || 1));
   const pageSize = Math.min(200, Math.max(1, Number(query.pageSize || 50)));
@@ -221,7 +262,7 @@ export function listEntries(
     .prepare(
       `SELECT e.* FROM entries e
        WHERE ${whereSql}
-       ORDER BY e.date DESC, e.updated_at DESC
+       ORDER BY ${orderSql}
        LIMIT ? OFFSET ?`
     )
     .all(...params, pageSize, offset) as RawEntryRow[];

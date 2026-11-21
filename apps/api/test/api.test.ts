@@ -6,7 +6,11 @@ import JSZip from "jszip";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { getShanghaiNowParts } from "@lifebook/core";
 import { createLifebookApp, type AppInstance } from "../src/app.js";
+import { initDatabase } from "../src/db/schema.js";
+import { resolveMasterKey } from "../src/crypto.js";
+import { extractJsonFromAiText } from "../src/services/ai-client.js";
 import { upsertEntry } from "../src/services/entries.js";
+import { generateAndCacheEntryDigest } from "../src/services/reviews.js";
 
 describe("@lifebook/api 全链路集成测试", () => {
   let tmpDir: string;
@@ -16,9 +20,11 @@ describe("@lifebook/api 全链路集成测试", () => {
   // 本地模拟 HTTP 服务：大模型三协议 + 时间簿
   let mockServer: http.Server;
   let mockBaseUrl = "";
-  let mockAiMode: "normal" | "loop_tools" | "auth_error" = "normal";
+  let mockAiMode: "normal" | "loop_tools" | "auth_error" | "stats_qa" | "digest_flaky_json" = "normal";
   let mockTbOnline = true;
   let lastSeenToolNames: string[] = [];
+  let lastSeenQaSystemPrompt = "";
+  let flakyDigestAttempt = 0;
 
   beforeAll(async () => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "lifebook-api-test-"));
@@ -103,6 +109,7 @@ describe("@lifebook/api 全链路集成测试", () => {
 
         // 回忆问答工具循环
         if (tools.length > 0) {
+          lastSeenQaSystemPrompt = sysMsg;
           if (mockAiMode === "loop_tools") {
             res.writeHead(200, { "Content-Type": "application/json" });
             res.end(
@@ -122,6 +129,54 @@ describe("@lifebook/api 全链路集成测试", () => {
                   }
                 ],
                 usage: { prompt_tokens: 20, completion_tokens: 10, total_tokens: 30 }
+              })
+            );
+            return;
+          }
+
+          if (mockAiMode === "stats_qa") {
+            if (lastMsg?.role !== "tool") {
+              res.writeHead(200, { "Content-Type": "application/json" });
+              res.end(
+                JSON.stringify({
+                  choices: [
+                    {
+                      message: {
+                        content: null,
+                        tool_calls: [
+                          {
+                            id: "call_stats_1",
+                            type: "function",
+                            function: {
+                              name: "aggregate_entry_stats",
+                              arguments: JSON.stringify({ tag: "重要", groupBy: "year" })
+                            }
+                          },
+                          {
+                            id: "call_list_1",
+                            type: "function",
+                            function: {
+                              name: "list_entry_digests",
+                              arguments: JSON.stringify({ mood: "平静", sortBy: "words_desc", limit: 3 })
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                })
+              );
+              return;
+            }
+            const toolResults = messages
+              .filter((m) => m.role === "tool")
+              .map((m) => m.content || "")
+              .join(" | ");
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(
+              JSON.stringify({
+                choices: [{ message: { content: `统计结果确认：${toolResults}` } }],
+                usage: { prompt_tokens: 80, completion_tokens: 45, total_tokens: 125 }
               })
             );
             return;
@@ -161,6 +216,39 @@ describe("@lifebook/api 全链路集成测试", () => {
 
         // 单篇结构化日概要
         if (sysMsg.includes("shortTitle")) {
+          if (mockAiMode === "digest_flaky_json") {
+            flakyDigestAttempt++;
+            if (flakyDigestAttempt === 1) {
+              // 模拟第 1 次模型生成未转义逗号错误导致 JSON.parse 失败
+              res.writeHead(200, { "Content-Type": "application/json" });
+              res.end(
+                JSON.stringify({
+                  choices: [
+                    {
+                      message: {
+                        content: `{"shortTitle": "首次报错" "summary": "这里缺逗号将触发重试",}`
+                      }
+                    }
+                  ]
+                })
+              );
+              return;
+            }
+            // 第 2 次重试返回带 <think> 与尾逗号的合法容错 JSON
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(
+              JSON.stringify({
+                choices: [
+                  {
+                    message: {
+                      content: `<think>思考内容应被自动清除</think>\n\`\`\`json\n{\n  "shortTitle": "重试容错成功摘要",\n  "summary": "第2次自动重试并通过容错解析保存。",\n  "dimLife": "生活有序",\n  "dimWork": "无明显记录",\n  "dimLeisure": "夜间散步",\n  "dimPeopleNotes": "无明显记录",\n  "keyEvents": [{ "title": "夜游放松", "importance": 3, "nature": "生活" },],\n  "topics": ["重试", "散步",],\n  "reflection": "容错可靠。",\n}\n\`\`\``
+                    }
+                  }
+                ]
+              })
+            );
+            return;
+          }
           res.writeHead(200, { "Content-Type": "application/json" });
           res.end(
             JSON.stringify({
@@ -669,5 +757,83 @@ describe("@lifebook/api 全链路集成测试", () => {
     expect(jsonExport.status).toBe(200);
     const mdExport = await req("/api/export?format=markdown");
     expect(mdExport.status).toBe(200);
+  });
+
+  it("v0.1.1: 老库默认心情色平滑迁移、多词空格检索、问答元数据统计及 JSON 容错重试", async () => {
+    // 1. 老库旧色自动迁移，保留手工自定义色
+    const legacyDir = fs.mkdtempSync(path.join(os.tmpdir(), "lifebook-legacy-mood-"));
+    try {
+      const db1 = initDatabase(legacyDir);
+      db1.prepare("DELETE FROM settings WHERE key = 'mood_palette_v011_migrated'").run();
+      db1.prepare("UPDATE moods SET tone = '#64748B' WHERE name = '平静'").run();
+      db1.prepare("UPDATE moods SET tone = '#22C55E' WHERE name = '开心'").run();
+      db1.prepare("UPDATE moods SET tone = '#123456' WHERE name = '烦躁'").run(); // 模拟用户改过自定义色
+      db1.close();
+
+      const db2 = initDatabase(legacyDir);
+      const calm = db2.prepare("SELECT tone FROM moods WHERE name = '平静'").get() as { tone: string };
+      const happy = db2.prepare("SELECT tone FROM moods WHERE name = '开心'").get() as { tone: string };
+      const annoyed = db2.prepare("SELECT tone FROM moods WHERE name = '烦躁'").get() as { tone: string };
+      expect(calm.tone).toBe("#7DD3FC");
+      expect(happy.tone).toBe("#34D399");
+      expect(annoyed.tone).toBe("#123456");
+      db2.close();
+    } finally {
+      fs.rmSync(legacyDir, { recursive: true, force: true });
+    }
+
+    // 2. 空格多词联合跨段检索与日期混搜
+    const multiWordEntry = upsertEntry(instance.db, {
+      kind: "daily",
+      date: "2026-07-11",
+      title: "夏日出差行程记",
+      contentHtml: "<p>上午抵达杭州会场对齐进度。</p><p>傍晚去西溪湿地走了走吹吹风。</p>",
+      tags: ["重要事件"],
+      moods: ["😌 平静"],
+      createSnapshot: false
+    });
+    const multiRes = await req(`/api/entries?q=${encodeURIComponent("杭州 西溪")}`);
+    expect(multiRes.status).toBe(200);
+    const multiJson = (await multiRes.json()) as { items: Array<{ id: string }> };
+    expect(multiJson.items.some((e) => e.id === multiWordEntry.id)).toBe(true);
+
+    const dateWordRes = await req(`/api/entries?q=${encodeURIComponent("2026 西溪")}`);
+    const dateWordJson = (await dateWordRes.json()) as { items: Array<{ id: string }> };
+    expect(dateWordJson.items.some((e) => e.id === multiWordEntry.id)).toBe(true);
+
+    // 3. 回忆问答：注入真实标签/心情清单 + 模糊标签与字数统计分组
+    mockAiMode = "stats_qa";
+    const qaStatsRes = await req("/api/ai/qa", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question: "统计带有重要标签的日记有几篇以及最长的是哪天？" })
+    });
+    expect(qaStatsRes.status).toBe(200);
+    const qaStatsJson = (await qaStatsRes.json()) as { answer: string; citations: Array<{ date: string }> };
+    expect(lastSeenQaSystemPrompt).toContain("重要事件");
+    expect(lastSeenQaSystemPrompt).toContain("😌 平静");
+    expect(qaStatsJson.answer).toContain("timeline");
+    expect(qaStatsJson.answer).toContain("longestEntries");
+    expect(qaStatsJson.citations.length).toBeGreaterThan(0);
+
+    // 4. extractJsonFromAiText 清洗思考块、尾逗号、裸换行与对象漏逗号容错
+    const dirty = `<think>分析一下</think>\n\`\`\`json\n{\n  "title": "第一行\n第二行",\n  "items": [{"a": 1} {"a": 2},],\n}\n\`\`\``;
+    const parsedDirty = extractJsonFromAiText<{ title: string; items: Array<{ a: number }> }>(dirty);
+    expect(parsedDirty.title).toContain("第一行");
+    expect(parsedDirty.items).toHaveLength(2);
+
+    // 5. generateAndCacheEntryDigest 首次返回语法错误 JSON 时自动重试第 2 次成功保存
+    flakyDigestAttempt = 0;
+    mockAiMode = "digest_flaky_json";
+    const digestRes = await generateAndCacheEntryDigest(
+      instance.db,
+      resolveMasterKey(tmpDir),
+      multiWordEntry.id,
+      true
+    );
+    expect(flakyDigestAttempt).toBe(2);
+    expect(digestRes?.shortTitle).toBe("重试容错成功摘要");
+    expect(digestRes?.topics).toEqual(["重试", "散步"]);
+    mockAiMode = "normal";
   });
 });

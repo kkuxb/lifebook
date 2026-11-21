@@ -575,20 +575,87 @@ export async function testAiConnection(
   };
 }
 
+function extractBalancedJsonObject(raw: string): string | null {
+  const start = raw.indexOf("{");
+  if (start < 0) return null;
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let i = start; i < raw.length; i++) {
+    const ch = raw[i];
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (ch === "\\") {
+        escaped = true;
+      } else if (ch === '"') {
+        inString = false;
+      }
+      continue;
+    }
+    if (ch === '"') {
+      inString = true;
+    } else if (ch === "{") {
+      depth++;
+    } else if (ch === "}") {
+      depth--;
+      if (depth === 0) {
+        return raw.slice(start, i + 1);
+      }
+    }
+  }
+  const end = raw.lastIndexOf("}");
+  return end > start ? raw.slice(start, end + 1) : null;
+}
+
+function sanitizeJsonText(raw: string): string {
+  // 1. 将字符串字面量内部的裸换行替换为空格，保留合法转义
+  let out = "";
+  let inString = false;
+  let escaped = false;
+  for (let i = 0; i < raw.length; i++) {
+    const ch = raw[i];
+    if (inString) {
+      if (escaped) {
+        out += ch;
+        escaped = false;
+      } else if (ch === "\\") {
+        out += ch;
+        escaped = true;
+      } else if (ch === '"') {
+        out += ch;
+        inString = false;
+      } else if (ch === "\n" || ch === "\r") {
+        out += " ";
+      } else {
+        out += ch;
+      }
+      continue;
+    }
+    if (ch === '"') inString = true;
+    out += ch;
+  }
+  // 2. 修复相邻对象之间漏写逗号以及对象/数组末尾多余逗号
+  return out
+    .replace(/\}\s*\{/g, "},{")
+    .replace(/,\s*([}\]])/g, "$1");
+}
+
 export function extractJsonFromAiText<T>(text: string): T {
-  const cleaned = text
-    .trim()
+  const withoutThink = text.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
+  const cleaned = withoutThink
     .replace(/^```(?:json)?\s*/i, "")
     .replace(/\s*```$/i, "")
     .trim();
-  try {
-    return JSON.parse(cleaned) as T;
-  } catch {
-    const start = cleaned.indexOf("{");
-    const end = cleaned.lastIndexOf("}");
-    if (start >= 0 && end > start) {
-      return JSON.parse(cleaned.slice(start, end + 1)) as T;
+
+  const candidate = extractBalancedJsonObject(cleaned) ?? cleaned;
+  for (const attempt of [cleaned, candidate, sanitizeJsonText(candidate)]) {
+    if (!attempt) continue;
+    try {
+      return JSON.parse(attempt) as T;
+    } catch {
+      // 依次回退到平衡提取与轻量安全修复
     }
-    throw new Error("模型返回内容不是合法 JSON 格式");
   }
+  throw new Error("模型返回内容不是合法 JSON 格式（已尝试容错解析）");
 }

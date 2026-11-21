@@ -30,15 +30,56 @@ function getDateRangeForPreset(preset: DatePreset, today: string, customStart: s
   return { start: "", end: "" };
 }
 
+function splitSearchTerms(query: string): string[] {
+  return [...new Set(query.trim().split(/\s+/).filter(Boolean))].slice(0, 6);
+}
+
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function buildMatchedSnippet(text: string, query: string, maxLen: number): { snippet: string; matchCount: number } {
+  const terms = splitSearchTerms(query);
+  if (terms.length === 0) {
+    return {
+      snippet: text.length > maxLen ? `${text.slice(0, maxLen)}…` : text,
+      matchCount: 0
+    };
+  }
+  const ordered = [...terms].sort((a, b) => b.length - a.length);
+  const re = new RegExp(`(${ordered.map(escapeRegExp).join("|")})`, "gi");
+  let matchCount = 0;
+  let firstIdx = -1;
+  for (const m of text.matchAll(re)) {
+    if (firstIdx === -1 && m.index !== undefined) firstIdx = m.index;
+    matchCount++;
+  }
+  if (firstIdx === -1 || firstIdx <= 38) {
+    return {
+      snippet: text.length > maxLen ? `${text.slice(0, maxLen)}…` : text,
+      matchCount
+    };
+  }
+  const start = Math.max(0, firstIdx - 42);
+  const end = Math.min(text.length, start + maxLen);
+  const prefix = start > 0 ? "…" : "";
+  const suffix = end < text.length ? "…" : "";
+  return {
+    snippet: `${prefix}${text.slice(start, end)}${suffix}`,
+    matchCount
+  };
+}
+
 function HighlightedText({ text, query }: { text: string; query: string }) {
-  const q = query.trim();
-  if (!q) return <>{text}</>;
-  const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const parts = text.split(new RegExp(`(${escaped})`, "gi"));
+  const terms = splitSearchTerms(query);
+  if (terms.length === 0) return <>{text}</>;
+  const ordered = [...terms].sort((a, b) => b.length - a.length);
+  const parts = text.split(new RegExp(`(${ordered.map(escapeRegExp).join("|")})`, "gi"));
+  const lowerSet = new Set(terms.map((t) => t.toLowerCase()));
   return (
     <>
       {parts.map((part, i) =>
-        part.toLowerCase() === q.toLowerCase() ? (
+        lowerSet.has(part.toLowerCase()) ? (
           <mark key={i} className="search-hl">
             {part}
           </mark>
@@ -304,58 +345,75 @@ export function HistoryPage({
         </div>
       ) : layout === "list" ? (
         <div className="hist-list">
-          {items.map((e) => (
-            <div key={e.id} className="card lift hist-row" onClick={() => onOpenEntryId(e.id)}>
-              <div style={{ flex: 1, minWidth: 240 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 5 }}>
-                  <span className="num" style={{ fontSize: 13, fontWeight: 800, color: "var(--ink-3)" }}>
-                    {e.kind === "special" ? `📌 专项复盘 · ${e.date}` : e.date}
-                  </span>
-                  <span style={{ fontSize: 16, fontWeight: 800 }}>
-                    <HighlightedText text={e.title || `${e.date} 日记`} query={q} />
-                  </span>
+          {items.map((e) => {
+            const matched = buildMatchedSnippet(e.contentText, q, 150);
+            return (
+              <div key={e.id} className="card lift hist-row" onClick={() => onOpenEntryId(e.id)}>
+                <div style={{ flex: 1, minWidth: 240 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 5 }}>
+                    <span className="num" style={{ fontSize: 13, fontWeight: 800, color: "var(--ink-3)" }}>
+                      {e.kind === "special" ? `📌 专项复盘 · ${e.date}` : e.date}
+                    </span>
+                    <span style={{ fontSize: 16, fontWeight: 800 }}>
+                      <HighlightedText text={e.title || `${e.date} 日记`} query={q} />
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 13, color: "var(--ink-2)", lineHeight: 1.6 }}>
+                    <HighlightedText text={matched.snippet} query={q} />
+                  </div>
                 </div>
-                <div style={{ fontSize: 13, color: "var(--ink-2)", lineHeight: 1.6 }}>
-                  <HighlightedText text={e.contentText.slice(0, 140)} query={q} />
-                  {e.contentText.length > 140 ? "…" : ""}
-                </div>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                <span>{e.moods.join(" ")}</span>
-                {e.tags.map((tName) => (
-                  <TagBadge key={tName} tagName={tName} tags={tags} theme={theme} />
-                ))}
-                <span className="badge-count num">{e.wordCount} 字</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="hist-gallery">
-          {items.map((e) => (
-            <div key={e.id} className="card lift hist-card" onClick={() => onOpenEntryId(e.id)}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 12, fontWeight: 800, color: "var(--ink-3)" }}>
-                <span className="num">{e.kind === "special" ? `📌 ${e.date}` : e.date}</span>
-                <span>{e.moods.join(" ")}</span>
-              </div>
-              <div style={{ fontSize: 16, fontWeight: 800, lineHeight: 1.4 }}>
-                <HighlightedText text={e.title || `${e.date} 日记`} query={q} />
-              </div>
-              <div className="hist-card-snippet">
-                <HighlightedText text={e.contentText} query={q} />
-              </div>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "auto", gap: 8 }}>
-                <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                  {q.trim() && matched.matchCount > 0 && (
+                    <span className="badge-count num" title="正文中匹配关键词总次数">
+                      命中 {matched.matchCount} 处
+                    </span>
+                  )}
+                  <span>{e.moods.join(" ")}</span>
                   {e.tags.map((tName) => (
                     <TagBadge key={tName} tagName={tName} tags={tags} theme={theme} />
                   ))}
+                  <span className="badge-count num">{e.wordCount} 字</span>
                 </div>
-                <span className="num" style={{ fontSize: 12, color: "var(--ink-3)", fontWeight: 700 }}>
-                  {e.wordCount} 字
-                </span>
               </div>
-            </div>
-          ))}
+            );
+          })}
+        </div>
+      ) : (
+        <div className="hist-gallery">
+          {items.map((e) => {
+            const matched = buildMatchedSnippet(e.contentText, q, 180);
+            return (
+              <div key={e.id} className="card lift hist-card" onClick={() => onOpenEntryId(e.id)}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 12, fontWeight: 800, color: "var(--ink-3)" }}>
+                  <span className="num">{e.kind === "special" ? `📌 ${e.date}` : e.date}</span>
+                  <span>{e.moods.join(" ")}</span>
+                </div>
+                <div style={{ fontSize: 16, fontWeight: 800, lineHeight: 1.4 }}>
+                  <HighlightedText text={e.title || `${e.date} 日记`} query={q} />
+                </div>
+                <div className="hist-card-snippet">
+                  <HighlightedText text={matched.snippet} query={q} />
+                </div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "auto", gap: 8 }}>
+                  <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+                    {e.tags.map((tName) => (
+                      <TagBadge key={tName} tagName={tName} tags={tags} theme={theme} />
+                    ))}
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    {q.trim() && matched.matchCount > 0 && (
+                      <span className="badge-count num" style={{ fontSize: 11 }}>
+                        命中 {matched.matchCount} 处
+                      </span>
+                    )}
+                    <span className="num" style={{ fontSize: 12, color: "var(--ink-3)", fontWeight: 700 }}>
+                      {e.wordCount} 字
+                    </span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
 

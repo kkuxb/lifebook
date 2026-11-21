@@ -63,6 +63,7 @@ export function SettingsDrawer({
     failed: number;
     lastError: string;
     currentDate: string;
+    failedItems?: Array<{ date: string; entryId: string; error: string }>;
   } | null>(null);
 
   const [tbEnabled, setTbEnabled] = useState(timebookConfig.enabled);
@@ -467,12 +468,12 @@ export function SettingsDrawer({
                   </span>
                 </div>
                 <div style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 4, lineHeight: 1.6 }}>
-                  支持随时开始、暂停并断点续跑（已完成篇数按正文指纹永久缓存，不重复计算）。
+                  补齐任务运行在服务端后台，关闭网页不会中断；单篇遇到格式波动会自动重试最多 2 次，仍失败时暂跳过并记录日期，可随时点击继续重跑。
                 </div>
                 <div className="progress-bar">
                   <div className="progress-fill" style={{ width: `${batchPct}%` }} />
                 </div>
-                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
                   {batchStatus?.running ? (
                     <button
                       type="button"
@@ -496,9 +497,30 @@ export function SettingsDrawer({
                       ▶ {batchStatus && batchStatus.done > 0 && batchStatus.done < batchStatus.total ? "继续断点补齐" : "开始批量补齐"}
                     </button>
                   )}
+                  {batchStatus && batchStatus.failed > 0 && (
+                    <span className="badge-count num" style={{ color: "#DC2626" }}>
+                      本轮暂跳过 {batchStatus.failed} 篇
+                    </span>
+                  )}
                 </div>
-                {batchStatus?.lastError && (
-                  <div className="conn-result err">最近异常：{batchStatus.lastError}</div>
+                {batchStatus?.failedItems && batchStatus.failedItems.length > 0 ? (
+                  <div className="conn-result err" style={{ display: "grid", gap: 4 }}>
+                    <div style={{ fontWeight: 700 }}>
+                      以下日期尝试 3 次后仍暂未通过格式校验，已自动跳过，再次点击「继续断点补齐」即可重跑：
+                    </div>
+                    {batchStatus.failedItems.slice(0, 8).map((item) => (
+                      <div key={item.entryId} style={{ fontSize: 12 }}>
+                        • {item.date}：{item.error}
+                      </div>
+                    ))}
+                    {batchStatus.failedItems.length > 8 && (
+                      <div style={{ fontSize: 12 }}>…另有 {batchStatus.failedItems.length - 8} 篇跳过记录</div>
+                    )}
+                  </div>
+                ) : (
+                  batchStatus?.lastError && (
+                    <div className="conn-result err">最近异常：{batchStatus.lastError}</div>
+                  )
                 )}
               </div>
 

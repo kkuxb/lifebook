@@ -219,7 +219,7 @@ export function createMood(
   if (dup) throw new ValidationError(`已存在相同心情「${label}」`);
 
   const curCount = (db.prepare("SELECT COUNT(*) as c FROM moods").get() as { c: number }).c;
-  const tone = input.tone || "#64748B";
+  const tone = input.tone || "#7DD3FC";
   const level = input.level ?? 3;
   const now = new Date().toISOString();
   const id = `mood-${ulid()}`;

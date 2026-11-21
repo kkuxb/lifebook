@@ -292,6 +292,7 @@ export function App() {
           <HomePage
             theme={theme}
             tags={tags}
+            moods={moods}
             aiConfig={aiConfig}
             onWriteToday={() => openEditorForDate(getShanghaiNowParts().date)}
             onNewSpecial={openNewSpecial}

@@ -3,6 +3,7 @@ import {
   getShanghaiNowParts,
   type AiConfigPublic,
   type EntryRecord,
+  type MoodItem,
   type QaResponse,
   type TagItem
 } from "@lifebook/core";
@@ -27,6 +28,7 @@ const SAMPLE_QUESTIONS = [
 export function HomePage({
   theme,
   tags,
+  moods,
   aiConfig,
   onWriteToday,
   onNewSpecial,
@@ -40,6 +42,7 @@ export function HomePage({
 }: {
   theme: "light" | "dark";
   tags: TagItem[];
+  moods: MoodItem[];
   aiConfig: AiConfigPublic;
   onWriteToday: () => void;
   onNewSpecial: () => void;
@@ -453,16 +456,39 @@ export function HomePage({
         </div>
 
         <div className="heat-legend">
-          <span>{heatYear} 年每日字数热度图（按上海自然日统计）</span>
-          <div className="legend-boxes">
-            <span>未记</span>
-            <i style={{ background: "var(--heat-0)" }} />
-            <i style={{ background: "var(--heat-1)" }} title="1~400字" />
-            <i style={{ background: "var(--heat-2)" }} title="401~800字" />
-            <i style={{ background: "var(--heat-3)" }} title="801~1300字" />
-            <i style={{ background: "var(--heat-4)" }} title="1301字以上" />
-            <span>厚重长文</span>
-          </div>
+          <span>
+            {heatColorBy === "mood"
+              ? `${heatYear} 年每日心情热度图（按上海自然日统计）`
+              : `${heatYear} 年每日字数热度图（按上海自然日统计）`}
+          </span>
+          {heatColorBy === "mood" ? (
+            <div className="legend-boxes" style={{ flexWrap: "wrap", rowGap: 6, gap: 8 }}>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                <i style={{ background: "var(--heat-0)" }} />
+                <span>未记</span>
+              </span>
+              {moods.map((m) => (
+                <span
+                  key={m.id}
+                  style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
+                  title={m.label}
+                >
+                  <i style={{ background: m.tone }} />
+                  <span>{m.name}</span>
+                </span>
+              ))}
+            </div>
+          ) : (
+            <div className="legend-boxes">
+              <span>未记</span>
+              <i style={{ background: "var(--heat-0)" }} />
+              <i style={{ background: "var(--heat-1)" }} title="1~400字" />
+              <i style={{ background: "var(--heat-2)" }} title="401~800字" />
+              <i style={{ background: "var(--heat-3)" }} title="801~1300字" />
+              <i style={{ background: "var(--heat-4)" }} title="1301字以上" />
+              <span>厚重长文</span>
+            </div>
+          )}
         </div>
       </section>
 
