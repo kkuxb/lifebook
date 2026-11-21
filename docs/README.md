@@ -1,16 +1,21 @@
 # 人生簿（Lifebook）项目文档索引
 
 - **项目标识（`slug`）**：`lifebook`
-- **当前阶段**：**`v0.1.1`（一期体验优化与缺陷修复维护版，开源仓库 `https://github.com/kkuxb/lifebook`；二期桌面客户端待后续启动）**
-- **下一步**：完成 `v0.1.1` 校验并推送至 GitHub 发布页；NAS 端可按 [绿联NAS部署与使用指南](绿联NAS部署与使用指南.md) `git pull && docker compose up -d --build` 一键更新。
+- **当前阶段**：**`v0.2.0` 已正式验收收口并开源发布（含极简轻量桌面客户端与时间簿全层级跨库问答；开源仓库 `https://github.com/kkuxb/lifebook`）**
+- **下一步**：NAS 端执行 `git pull origin main && docker compose up -d --build` 即可同步升级全部功能，桌面端点击「人生簿 → 刷新当前页面」立即生效。
 
 ## 一、版本更新与当前有效文档
 
+- **二期 `v0.2.0` 正式版本（`2026-11-21` 已验收发布）**：
+  - [v0.2.0 验收记录](deliveries/lifebook-v0.2.0-acceptance.md) ｜ [v0.2.0-R1 验证报告](deliveries/lifebook-v0.2.0-R1-test-report.md)
+  - [v0.2.0 工程设计方案](designs/lifebook-v0.2.0-design.md)
+  - [v0.2.0 可执行实施计划](designs/lifebook-v0.2.0-implementation-plan.md)
+  - [v0.2.0 独立测试计划](designs/lifebook-v0.2.0-test-plan.md)（`V8`～`V11` 隔离盲测方案）
 - **`v0.1.1` 维护更新（`2026-11-21`）**：重构足迹热力图 8 档心情语义色谱与图例联动（含旧库默认色平滑迁移）；升级历史检索多词联合查询与命中上下文智能摘录；增强首页回忆问答对标签、心情、字数统计与排名的查询能力；提升单篇日概要输出上限、JSON 容错清洗与自动重试机制，并明确展示批量后台运行与跳过日期清单。
 
 - [v0.1.0 验收记录](deliveries/lifebook-v0.1.0-acceptance.md) ｜ [R3 定向验证报告](deliveries/lifebook-v0.1.0-R3-test-report.md) ｜ [R2 全量验证报告](deliveries/lifebook-v0.1.0-R2-test-report.md)
 - [绿联NAS部署与使用指南](绿联NAS部署与使用指南.md)
-- [需求澄清与讨论纪要](requirements/lifebook-讨论纪要.md)（含原空间及「时间簿」只读实证盘点、已确认决定表 `C-01`～`C-21`）
+- [需求澄清与讨论纪要](requirements/lifebook-讨论纪要.md)（含原空间及「时间簿」只读实证盘点、已确认决定表 `C-01`～`C-24`）
 - [v0.1.0 一期工程设计方案](designs/lifebook-v0.1.0-design.md)（`2026-11-21` 冻结）
 - [v0.1.0 可执行实施计划](designs/lifebook-v0.1.0-implementation-plan.md)
 - [v0.1.0 独立测试计划](designs/lifebook-v0.1.0-test-plan.md)

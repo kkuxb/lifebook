@@ -11,6 +11,7 @@ import { resolveMasterKey } from "../src/crypto.js";
 import { extractJsonFromAiText } from "../src/services/ai-client.js";
 import { upsertEntry } from "../src/services/entries.js";
 import { generateAndCacheEntryDigest } from "../src/services/reviews.js";
+import { clearTimebookCache } from "../src/services/timebook-sync.js";
 
 describe("@lifebook/api 全链路集成测试", () => {
   let tmpDir: string;
@@ -20,8 +21,10 @@ describe("@lifebook/api 全链路集成测试", () => {
   // 本地模拟 HTTP 服务：大模型三协议 + 时间簿
   let mockServer: http.Server;
   let mockBaseUrl = "";
-  let mockAiMode: "normal" | "loop_tools" | "auth_error" | "stats_qa" | "digest_flaky_json" = "normal";
+  let mockAiMode: "normal" | "loop_tools" | "auth_error" | "stats_qa" | "digest_flaky_json" | "timebook_qa" = "normal";
   let mockTbOnline = true;
+  let mockTbSchemaMode: "legacy" | "four_layer" = "legacy";
+  let tbSyncCallCount = 0;
   let lastSeenToolNames: string[] = [];
   let lastSeenQaSystemPrompt = "";
   let flakyDigestAttempt = 0;
@@ -54,7 +57,50 @@ describe("@lifebook/api 全链路集成测试", () => {
           res.end("offline");
           return;
         }
+        tbSyncCallCount += 1;
         res.writeHead(200, { "Content-Type": "application/json" });
+        if (mockTbSchemaMode === "four_layer") {
+          // 上海 2026-09-12 10:00~13:00 (3h 原神), 2026-09-20 14:00~16:00 (2h 原神), 2026-09-20 09:00~12:00 (3h 编码)
+          // 跨月边界：2026-09-30T22:00:00Z = 上海 2026-10-01 06:00:00 (应算入 2026-10 而非 2026-09)
+          const t1Start = Date.parse("2026-09-12T10:00:00+08:00");
+          const t1End = Date.parse("2026-09-12T13:00:00+08:00");
+          const t2Start = Date.parse("2026-09-20T14:00:00+08:00");
+          const t2End = Date.parse("2026-09-20T16:00:00+08:00");
+          const t3Start = Date.parse("2026-09-20T09:00:00+08:00");
+          const t3End = Date.parse("2026-09-20T12:00:00+08:00");
+          const octStart = Date.parse("2026-09-30T22:00:00Z");
+          const octEnd = octStart + 3600_000;
+
+          res.end(
+            JSON.stringify({
+              modules: [
+                { id: "m-ent", name: "娱乐休息", color_key: "purple", sort: 1, deleted_at: null },
+                { id: "m-work", name: "工作学习", color_key: "blue", sort: 2, deleted_at: null }
+              ],
+              tags: [
+                { id: "tg-ys", module_id: "m-ent", name: "原神", sort: 1, deleted_at: null },
+                { id: "tg-code", module_id: "m-work", name: "编码", sort: 2, deleted_at: null }
+              ],
+              sessions: [
+                { id: "ses1", tag_id: "tg-ys", title: "枫丹探索", start_at: t1Start, end_at: t1End, deleted_at: null },
+                { id: "ses2", tag_id: "tg-ys", title: "深渊活动", start_at: t2Start, end_at: t2End, deleted_at: null },
+                { id: "ses3", tag_id: "tg-code", title: "写桌面端", start_at: t3Start, end_at: t3End, deleted_at: null },
+                { id: "ses-oct", tag_id: "tg-code", title: "十月晨练编码", start_at: octStart, end_at: octEnd, deleted_at: null },
+                { id: "ses-del", tag_id: "tg-ys", title: "已删计时", start_at: t1Start, end_at: t1End, deleted_at: 1790000000000 }
+              ],
+              todos: [
+                { id: "td-1", title: "原神版本任务", tag_id: "tg-ys", plan_date: "2026-09-12", done_at: t1End, deleted_at: null },
+                { id: "td-2", title: "补单测", tag_id: "tg-code", plan_date: "2026-09-20", done_at: null, deleted_at: null },
+                { id: "td-rec", title: "每日委托", tag_id: "tg-ys", recur: "daily", done_at: null, deleted_at: null }
+              ],
+              todo_checks: [
+                { todo_id: "td-rec", date: "2026-09-12", done_at: t1End, deleted_at: null },
+                { todo_id: "td-rec", date: "2026-09-13", done_at: null, deleted_at: null }
+              ]
+            })
+          );
+          return;
+        }
         res.end(
           JSON.stringify({
             modules: [
@@ -177,6 +223,84 @@ describe("@lifebook/api 全链路集成测试", () => {
               JSON.stringify({
                 choices: [{ message: { content: `统计结果确认：${toolResults}` } }],
                 usage: { prompt_tokens: 80, completion_tokens: 45, total_tokens: 125 }
+              })
+            );
+            return;
+          }
+
+          if (mockAiMode === "timebook_qa") {
+            const toolCount = messages.filter((m) => m.role === "tool").length;
+            if (toolCount === 0) {
+              res.writeHead(200, { "Content-Type": "application/json" });
+              res.end(
+                JSON.stringify({
+                  choices: [
+                    {
+                      message: {
+                        content: null,
+                        tool_calls: [
+                          {
+                            id: "call_tb_1",
+                            type: "function",
+                            function: {
+                              name: "query_timebook_stats",
+                              arguments: JSON.stringify({
+                                startDate: "2026-09-01",
+                                endDate: "2026-09-30",
+                                keyword: "原神",
+                                groupBy: "day"
+                              })
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                })
+              );
+              return;
+            }
+            if (toolCount === 1) {
+              const tbResult = JSON.parse(lastMsg?.content || "{}") as {
+                topDays?: Array<{ date: string }>;
+              };
+              const topDate = tbResult.topDays?.[0]?.date || "2026-09-12";
+              res.writeHead(200, { "Content-Type": "application/json" });
+              res.end(
+                JSON.stringify({
+                  choices: [
+                    {
+                      message: {
+                        content: null,
+                        tool_calls: [
+                          {
+                            id: "call_read_1",
+                            type: "function",
+                            function: {
+                              name: "read_entry_full",
+                              arguments: JSON.stringify({ date: topDate })
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                })
+              );
+              return;
+            }
+            const tbMsg = messages.find((m) => m.role === "tool" && m.content?.includes("totalHours"));
+            const entryMsg = messages.find((m) => m.role === "tool" && m.content?.includes("contentText"));
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(
+              JSON.stringify({
+                choices: [
+                  {
+                    message: {
+                      content: `时间簿统计：${tbMsg?.content || ""}；当天日记详情：${entryMsg?.content || ""}`
+                    }
+                  }
+                ]
               })
             );
             return;
@@ -718,6 +842,7 @@ describe("@lifebook/api 全链路集成测试", () => {
     expect(pinRes.status).toBe(200);
 
     // 4. 模拟时间簿离线后重新生成 -> 平滑降级为纯日记复盘且手动钉选仍保留
+    clearTimebookCache();
     mockTbOnline = false;
     const mReGen = await req("/api/reviews/monthly/2026-10/generate", { method: "POST" });
     expect(mReGen.status).toBe(200);
@@ -728,6 +853,7 @@ describe("@lifebook/api 全链路集成测试", () => {
     expect(mReJson.withTimebook).toBe(false);
     expect(mReJson.highlights.find((h) => h.entryId === targetEntryId)?.pinned).toBe(true);
     mockTbOnline = true;
+    clearTimebookCache();
 
     // 5. 生成已结束年 2025 深度年报
     upsertEntry(instance.db, {
@@ -835,5 +961,118 @@ describe("@lifebook/api 全链路集成测试", () => {
     expect(digestRes?.shortTitle).toBe("重试容错成功摘要");
     expect(digestRes?.topics).toEqual(["重试", "散步"]);
     mockAiMode = "normal";
+  });
+
+  it("V8 & V9: 时间簿四层真实结构兼容、60s缓存与首页问答动态第5工具跨库协同", async () => {
+    // 准备 2026-09-12 同期日记（对应玩原神最多那天）
+    upsertEntry(instance.db, {
+      kind: "daily",
+      date: "2026-09-12",
+      title: "周末打原神放松",
+      contentHtml: "<p>周末玩原神探索枫丹，心情特别开心放松。</p>",
+      tags: ["休闲躺平"],
+      moods: ["😄 开心"],
+      createSnapshot: false
+    });
+    upsertEntry(instance.db, {
+      kind: "daily",
+      date: "2026-09-20",
+      title: "推进桌面端编码",
+      contentHtml: "<p>下午推进编码并在休息时打了会儿深渊。</p>",
+      tags: ["日常记录"],
+      moods: ["😌 平静"],
+      createSnapshot: false
+    });
+
+    // 1. 先确认关闭时间簿联动时，首页问答传给模型的 tools 严格只有 4 个
+    await req("/api/settings/timebook", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ enabled: false, url: `${mockBaseUrl}/tb`, password: "tb-mock-password" })
+    });
+    mockAiMode = "normal";
+    await req("/api/ai/qa", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question: "测试未开时间簿工具数" })
+    });
+    expect(lastSeenToolNames).toEqual([
+      "search_entries_fts",
+      "list_entry_digests",
+      "read_entry_full",
+      "aggregate_entry_stats"
+    ]);
+
+    // 2. 开启时间簿并切换为真实四层数据结构模式
+    clearTimebookCache();
+    mockTbSchemaMode = "four_layer";
+    tbSyncCallCount = 0;
+    await req("/api/settings/timebook", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ enabled: true, url: `${mockBaseUrl}/tb`, password: "tb-mock-password" })
+    });
+
+    // V8: 生成 2026-09 深度月报，校验 tag_id -> module_id 精确归并、上海跨月边界、待办率与 60s 缓存
+    const m09Res = await req("/api/reviews/monthly/2026-09/generate", { method: "POST" });
+    expect(m09Res.status).toBe(200);
+    const m09 = (await m09Res.json()) as {
+      withTimebook: boolean;
+      overview: { tbHours: string; todoRate: string };
+      timebookMix: Array<{ name: string; hours: number; pct: number }>;
+    };
+    expect(m09.withTimebook).toBe(true);
+    // 2026-09 共 3h+2h(原神->娱乐休息) + 3h(编码->工作学习) = 8小时；9月30日22:00Z=上海10月1日不计入9月；已删不计入
+    expect(m09.overview.tbHours).toBe("8 小时");
+    // 待办：td-1(done) + td-2(undone) + td-rec 09-12(done) + td-rec 09-13(undone) = 2/4 = 50%
+    expect(m09.overview.todoRate).toBe("50%");
+    expect(m09.timebookMix.find((x) => x.name === "娱乐休息")?.hours).toBe(5);
+    expect(m09.timebookMix.find((x) => x.name === "工作学习")?.hours).toBe(3);
+    const callsAfterFirst = tbSyncCallCount;
+    expect(callsAfterFirst).toBe(1);
+
+    // 3. V9: 开启时间簿后首页问答动态注册第 5 工具 query_timebook_stats，且 60s 内命中缓存不额外刷 /api/sync
+    mockAiMode = "timebook_qa";
+    const qaTbRes = await req("/api/ai/qa", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question: "上个月玩原神花了多长时间，玩得最多的那天日记心情怎么样？" })
+    });
+    expect(qaTbRes.status).toBe(200);
+    const qaTb = (await qaTbRes.json()) as {
+      answer: string;
+      traces: Array<{ tool: string; summary: string }>;
+      citations: Array<{ date: string }>;
+    };
+    expect(lastSeenToolNames).toEqual([
+      "search_entries_fts",
+      "list_entry_digests",
+      "read_entry_full",
+      "aggregate_entry_stats",
+      "query_timebook_stats"
+    ]);
+    expect(tbSyncCallCount).toBe(callsAfterFirst); // 命中 60s 只读缓存
+    expect(qaTb.traces.some((t) => t.tool === "query_timebook_stats" && t.summary.includes("5 小时"))).toBe(true);
+    expect(qaTb.traces.some((t) => t.tool === "read_entry_full")).toBe(true);
+    expect(qaTb.answer).toContain('"totalHours":5');
+    expect(qaTb.answer).toContain('"sessionCount":2');
+    expect(qaTb.citations.some((c) => c.date === "2026-09-12")).toBe(true);
+
+    // 4. clearTimebookCache 后模拟时间簿离线 -> 问答与复盘均优雅降级不崩溃
+    clearTimebookCache();
+    mockTbOnline = false;
+    const qaDegradeRes = await req("/api/ai/qa", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question: "时间簿离线降级测试" })
+    });
+    expect(qaDegradeRes.status).toBe(200);
+    const qaDegrade = (await qaDegradeRes.json()) as { traces: Array<{ summary: string }> };
+    expect(qaDegrade.traces.some((t) => t.summary.includes("降级"))).toBe(true);
+
+    mockTbOnline = true;
+    mockTbSchemaMode = "legacy";
+    mockAiMode = "normal";
+    clearTimebookCache();
   });
 });

@@ -15,6 +15,8 @@ EXCLUDED_DIRS = {
     "node_modules",
     ".git",
     "dist",
+    "target",
+    "gen",
     "workspace-data",
     "prototype",
     "__pycache__",
@@ -25,7 +27,8 @@ EXCLUDED_DIRS = {
 
 TEXT_SUFFIXES = {
     ".ts", ".tsx", ".js", ".mjs", ".cjs", ".json", ".yaml", ".yml",
-    ".css", ".html", ".md", ".py", ".sh", ".example", ".txt", ""
+    ".css", ".html", ".md", ".py", ".sh", ".example", ".txt",
+    ".rs", ".toml", ".svg", ""
 }
 
 ROOT_FILES = [
@@ -47,6 +50,7 @@ INCLUDE_DIRS = [
     "packages/core",
     "apps/api",
     "apps/web",
+    "apps/desktop",
     "scripts",
 ]
 
@@ -58,6 +62,9 @@ INCLUDE_DOC_FILES = [
     "docs/designs/lifebook-v0.1.0-design.md",
     "docs/designs/lifebook-v0.1.0-implementation-plan.md",
     "docs/designs/lifebook-v0.1.0-test-plan.md",
+    "docs/designs/lifebook-v0.2.0-design.md",
+    "docs/designs/lifebook-v0.2.0-implementation-plan.md",
+    "docs/designs/lifebook-v0.2.0-test-plan.md",
     "docs/requirements/lifebook-讨论纪要.md",
     "docs/requirements/project-context.md",
 ]

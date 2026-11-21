@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>人生簿 · 连接服务</title>
+  <style>
+    :root {
+      --bg: #F6F7FA;
+      --paper: #FCFBF8;
+      --paper-border: #ECE7DC;
+      --surface: #FFFFFF;
+      --surface-2: #F2F3F7;
+      --border: #E8EAF1;
+      --border-strong: #D5D9E4;
+      --ink: #111827;
+      --ink-2: #4B5263;
+      --ink-3: #6B7280;
+      --accent: #FFD43B;
+      --accent-hover: #FFCC1A;
+      --accent-ink: #111827;
+      --ok-bg: #ECFDF3;
+      --ok-line: #B7E4C7;
+      --ok-ink: #146C43;
+      --danger-bg: #FFF1F2;
+      --danger: #E11D48;
+      --danger-ink: #C8203E;
+      --shadow-sm: 0 1px 2px rgba(17,24,39,.04), 0 10px 24px -16px rgba(17,24,39,.16);
+      --shadow-btn: inset 0 1px 0 rgba(255,255,255,.55), 0 8px 18px -10px rgba(214,160,0,.9);
+      --font-sans: "PingFang SC","Hiragino Sans GB","Microsoft YaHei UI","Microsoft YaHei","Noto Sans SC",system-ui,-apple-system,sans-serif;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #111318;
+        --paper: #1D212B;
+        --paper-border: #2C3242;
+        --surface: #191D26;
+        --surface-2: #222734;
+        --border: #262B38;
+        --border-strong: #353C4E;
+        --ink: #ECEFF6;
+        --ink-2: #B5BDCE;
+        --ink-3: #8A94A8;
+        --accent: #F5C83B;
+        --accent-hover: #FFD43B;
+        --accent-ink: #111827;
+        --ok-bg: #14261D;
+        --ok-line: #24533B;
+        --ok-ink: #6EE7B7;
+        --danger-bg: #331820;
+        --danger: #FB7185;
+        --danger-ink: #FDA4AF;
+        --shadow-sm: 0 1px 2px rgba(0,0,0,.35), 0 10px 24px -16px rgba(0,0,0,.55);
+      }
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font-sans);
+      -webkit-font-smoothing: antialiased;
+    }
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 28px 20px;
+    }
+    .guide-card {
+      width: 100%;
+      max-width: 540px;
+      background: var(--paper);
+      border: 1px solid var(--paper-border);
+      border-radius: 24px;
+      box-shadow: var(--shadow-sm);
+      padding: 32px 30px;
+    }
+    .brand-head {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+    .brand-logo {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      background: var(--accent);
+      color: var(--accent-ink);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-btn);
+      flex: none;
+    }
+    .brand-title {
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: -.02em;
+      margin: 0;
+    }
+    .brand-sub {
+      font-size: 13px;
+      color: var(--ink-3);
+      font-weight: 600;
+      margin-top: 3px;
+    }
+    .status-box {
+      padding: 18px;
+      border-radius: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      margin-bottom: 18px;
+    }
+    .status-title {
+      font-size: 15px;
+      font-weight: 800;
+      margin: 0 0 6px;
+    }
+    .status-desc {
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--ink-2);
+      margin: 0;
+      word-break: break-all;
+    }
+    .alert-err {
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: var(--danger-bg);
+      border: 1px solid var(--danger);
+      color: var(--danger-ink);
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.55;
+      margin-bottom: 16px;
+    }
+    .alert-ok {
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: var(--ok-bg);
+      border: 1px solid var(--ok-line);
+      color: var(--ok-ink);
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.55;
+      margin-bottom: 16px;
+    }
+    .section-label {
+      font-size: 12.5px;
+      font-weight: 800;
+      color: var(--ink-2);
+      margin: 16px 0 8px;
+    }
+    .server-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+    .server-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+    }
+    .server-row.active {
+      border-color: var(--accent);
+      box-shadow: inset 0 0 0 1px var(--accent);
+    }
+    .server-info {
+      min-width: 0;
+      flex: 1;
+    }
+    .server-name {
+      font-size: 14px;
+      font-weight: 800;
+    }
+    .server-url {
+      font-size: 12px;
+      color: var(--ink-3);
+      margin-top: 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .row-actions {
+      display: flex;
+      gap: 6px;
+      flex: none;
+    }
+    .field {
+      margin-bottom: 12px;
+    }
+    .field label {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 800;
+      color: var(--ink-2);
+      margin-bottom: 5px;
+    }
+    .field input {
+      width: 100%;
+      height: 40px;
+      border-radius: 12px;
+      border: 1px solid var(--border-strong);
+      background: var(--surface);
+      color: var(--ink);
+      padding: 0 13px;
+      font-size: 13.5px;
+      font-weight: 600;
+      outline: none;
+    }
+    .field input:focus {
+      border-color: var(--ink);
+    }
+    .btn {
+      border: 0;
+      border-radius: 12px;
+      height: 40px;
+      padding: 0 16px;
+      font-size: 13.5px;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      white-space: nowrap;
+      transition: transform .15s ease, opacity .15s ease;
+    }
+    .btn:active:not(:disabled) { transform: scale(.97); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-primary {
+      background: var(--accent);
+      color: var(--accent-ink);
+      box-shadow: var(--shadow-btn);
+      width: 100%;
+      height: 44px;
+      font-size: 14.5px;
+    }
+    .btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+    .btn-soft {
+      background: var(--surface-2);
+      color: var(--ink);
+      height: 32px;
+      padding: 0 11px;
+      font-size: 12px;
+    }
+    .btn-danger {
+      background: var(--danger-bg);
+      color: var(--danger-ink);
+      height: 32px;
+      padding: 0 10px;
+      font-size: 12px;
+    }
+    .hint-foot {
+      margin-top: 16px;
+      font-size: 12px;
+      color: var(--ink-3);
+      line-height: 1.6;
+      text-align: center;
+    }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <main class="guide-card">
+    <div class="brand-head">
+      <span class="brand-logo" aria-hidden="true">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
+          <path d="M9 7h6" />
+          <path d="M9 11h4" />
+        </svg>
+      </span>
+      <div>
+        <h1 class="brand-title">人生簿 · 桌面端</h1>
+        <div class="brand-sub">连接你的绿联家庭服务器或自托管人生簿实例</div>
+      </div>
+    </div>
+
+    <!-- 自动连接状态面板 -->
+    <section id="connectingPanel" class="status-box hidden">
+      <div class="status-title">正在连接人生簿服务…</div>
+      <p class="status-desc" id="connectingTarget"></p>
+      <div style="margin-top: 14px; display: flex; gap: 8px;">
+        <button type="button" class="btn btn-soft" id="cancelAutoBtn">取消并切换地址</button>
+      </div>
+    </section>
+
+    <!-- 友好错误与操作面板 -->
+    <div id="feedbackBox" class="hidden"></div>
+
+    <section id="managePanel">
+      <div id="retryRow" class="hidden" style="margin-bottom: 14px; display: flex; gap: 8px;">
+        <button type="button" class="btn btn-primary" id="retryActiveBtn" style="flex: 1;">↻ 重试连接当前地址</button>
+      </div>
+
+      <div id="savedServersWrap" class="hidden">
+        <div class="section-label">已保存的服务器地址</div>
+        <div class="server-list" id="serverList"></div>
+      </div>
+
+      <form id="connectForm">
+        <div class="section-label">添加或连接新服务地址</div>
+        <div class="field">
+          <label for="serverNameInput">服务器备注名</label>
+          <input id="serverNameInput" type="text" placeholder="例如：家里绿联 NAS" value="家里绿联 NAS" />
+        </div>
+        <div class="field">
+          <label for="serverUrlInput">服务地址（支持 http / https）</label>
+          <input id="serverUrlInput" type="url" placeholder="例如 http://nas.local:3220 或 http://127.0.0.1:3220" required />
+        </div>
+        <button type="submit" class="btn btn-primary" id="testConnectBtn">测试并进入人生簿</button>
+      </form>
+    </section>
+
+    <div class="hint-foot">
+      进入后可随时通过顶部菜单「人生簿 → 切换服务器地址…」返回本页面<br />
+      关闭窗口即直接退出程序，无后台驻留
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      const tauriInvoke = window.__TAURI__?.core?.invoke;
+      const connectingPanel = document.getElementById("connectingPanel");
+      const connectingTarget = document.getElementById("connectingTarget");
+      const cancelAutoBtn = document.getElementById("cancelAutoBtn");
+      const feedbackBox = document.getElementById("feedbackBox");
+      const managePanel = document.getElementById("managePanel");
+      const retryRow = document.getElementById("retryRow");
+      const retryActiveBtn = document.getElementById("retryActiveBtn");
+      const savedServersWrap = document.getElementById("savedServersWrap");
+      const serverList = document.getElementById("serverList");
+      const connectForm = document.getElementById("connectForm");
+      const serverNameInput = document.getElementById("serverNameInput");
+      const serverUrlInput = document.getElementById("serverUrlInput");
+      const testConnectBtn = document.getElementById("testConnectBtn");
+
+      let config = {
+        activeUrl: "",
+        servers: [],
+        window: { width: 1280, height: 860, x: null, y: null, maximized: false }
+      };
+      let autoConnectCancelled = false;
+
+      function showFeedback(type, msg) {
+        feedbackBox.className = type === "ok" ? "alert-ok" : "alert-err";
+        feedbackBox.textContent = msg;
+      }
+
+      function clearFeedback() {
+        feedbackBox.className = "hidden";
+        feedbackBox.textContent = "";
+      }
+
+      function renderServers() {
+        serverList.innerHTML = "";
+        if (!config.servers || config.servers.length === 0) {
+          savedServersWrap.classList.add("hidden");
+          return;
+        }
+        savedServersWrap.classList.remove("hidden");
+        for (const srv of config.servers) {
+          const row = document.createElement("div");
+          row.className = "server-row" + (srv.url === config.activeUrl ? " active" : "");
+
+          const info = document.createElement("div");
+          info.className = "server-info";
+          const nameEl = document.createElement("div");
+          nameEl.className = "server-name";
+          nameEl.textContent = srv.name || "未命名服务器";
+          const urlEl = document.createElement("div");
+          urlEl.className = "server-url";
+          urlEl.textContent = srv.url;
+          info.appendChild(nameEl);
+          info.appendChild(urlEl);
+
+          const actions = document.createElement("div");
+          actions.className = "row-actions";
+
+          const connBtn = document.createElement("button");
+          connBtn.type = "button";
+          connBtn.className = "btn btn-soft";
+          connBtn.textContent = "连接";
+          connBtn.onclick = () => void testAndEnter(srv.name, srv.url);
+
+          const delBtn = document.createElement("button");
+          delBtn.type = "button";
+          delBtn.className = "btn btn-danger";
+          delBtn.textContent = "删除";
+          delBtn.onclick = async () => {
+            config.servers = config.servers.filter((x) => x.url !== srv.url);
+            if (config.activeUrl === srv.url) {
+              config.activeUrl = config.servers[0]?.url || "";
+            }
+            if (tauriInvoke) {
+              config = await tauriInvoke("save_desktop_config", { cfg: config });
+            }
+            renderServers();
+          };
+
+          actions.appendChild(connBtn);
+          actions.appendChild(delBtn);
+          row.appendChild(info);
+          row.appendChild(actions);
+          serverList.appendChild(row);
+        }
+      }
+
+      async function probeUrl(url) {
+        if (!tauriInvoke) {
+          return { ok: false, normalizedUrl: url, latencyMs: 0, message: "未检测到桌面运行时" };
+        }
+        return await tauriInvoke("probe_server", { url });
+      }
+
+      async function testAndEnter(name, rawUrl) {
+        clearFeedback();
+        const url = String(rawUrl || "").trim();
+        if (!url) {
+          showFeedback("err", "请输入有效的服务器地址");
+          return;
+        }
+        testConnectBtn.disabled = true;
+        testConnectBtn.textContent = "正在探测服务健康状态…";
+        try {
+          const res = await probeUrl(url);
+          if (!res.ok) {
+            showFeedback("err", res.message || "无法连接到目标人生簿服务");
+            return;
+          }
+          const normalized = res.normalizedUrl || url.replace(/\/+$/, "");
+          const cleanName = String(name || "").trim() || "我的服务器";
+          const others = (config.servers || []).filter((s) => s.url !== normalized);
+          config.servers = [{ name: cleanName, url: normalized }, ...others];
+          config.activeUrl = normalized;
+          if (tauriInvoke) {
+            config = await tauriInvoke("save_desktop_config", { cfg: config });
+            await tauriInvoke("navigate_to_server", { url: normalized });
+          } else {
+            showFeedback("ok", `探测成功（${res.latencyMs}ms）：${normalized}`);
+          }
+        } catch (err) {
+          showFeedback("err", String(err));
+        } finally {
+          testConnectBtn.disabled = false;
+          testConnectBtn.textContent = "测试并进入人生簿";
+        }
+      }
+
+      async function boot() {
+        const params = new URLSearchParams(window.location.search);
+        const isSwitchMode = params.get("mode") === "switch";
+
+        if (tauriInvoke) {
+          try {
+            config = await tauriInvoke("get_desktop_config");
+          } catch (err) {
+            showFeedback("err", "读取本地配置失败：" + String(err));
+          }
+        }
+
+        renderServers();
+        if (config.activeUrl) {
+          serverUrlInput.value = config.activeUrl;
+        }
+
+        if (config.activeUrl && !isSwitchMode) {
+          connectingTarget.textContent = `目标服务：${config.activeUrl}`;
+          connectingPanel.classList.remove("hidden");
+          managePanel.classList.add("hidden");
+
+          const res = await probeUrl(config.activeUrl);
+          if (autoConnectCancelled) return;
+
+          if (res.ok && tauriInvoke) {
+            await tauriInvoke("navigate_to_server", { url: res.normalizedUrl || config.activeUrl });
+            return;
+          }
+
+          connectingPanel.classList.add("hidden");
+          managePanel.classList.remove("hidden");
+          retryRow.classList.remove("hidden");
+          showFeedback(
+            "err",
+            `上次连接的服务当前不可达（${res.message || "连接超时"}）。你可以重试连接或选择其它服务器地址。`
+          );
+        }
+      }
+
+      cancelAutoBtn.onclick = () => {
+        autoConnectCancelled = true;
+        connectingPanel.classList.add("hidden");
+        managePanel.classList.remove("hidden");
+        if (config.activeUrl) retryRow.classList.remove("hidden");
+      };
+
+      retryActiveBtn.onclick = () => {
+        if (config.activeUrl) {
+          const activeSrv = (config.servers || []).find((s) => s.url === config.activeUrl);
+          void testAndEnter(activeSrv?.name || "我的服务器", config.activeUrl);
+        }
+      };
+
+      connectForm.onsubmit = (e) => {
+        e.preventDefault();
+        void testAndEnter(serverNameInput.value, serverUrlInput.value);
+      };
+
+      void boot();
+    })();
+  </script>
+</body>
+</html>

@@ -15,6 +15,7 @@ import {
 } from "./ai-client.js";
 import { getEntryById, hydrateEntries, listEntries } from "./entries.js";
 import { listMoods, listTags } from "./tags-moods.js";
+import { getTimebookConfigFull, queryTimebookForQa } from "./timebook-sync.js";
 
 export const READONLY_QA_TOOLS: AiToolDeclaration[] = [
   {
@@ -85,12 +86,32 @@ export const READONLY_QA_TOOLS: AiToolDeclaration[] = [
   }
 ];
 
-function executeReadonlyTool(
+export const TIMEBOOK_QA_TOOL: AiToolDeclaration = {
+  name: "query_timebook_stats",
+  description:
+    "只读查询关联「时间簿」中的真实耗时投入与待办完成情况：支持按起止日期范围、关键词（同时模糊匹配模块大类、细分标签、单次计时标题与待办名称，如“原神”“编码”“健身”）以及按日/月分组汇总，并返回投入最多的日期清单以便继续结合日记分析情绪。",
+  parameters: {
+    type: "object",
+    properties: {
+      startDate: { type: "string", description: "可选起始日期 YYYY-MM-DD" },
+      endDate: { type: "string", description: "可选结束日期 YYYY-MM-DD" },
+      keyword: { type: "string", description: "可选关键词（匹配模块、标签、单次计时备注或待办标题）" },
+      groupBy: {
+        type: "string",
+        enum: ["none", "day", "month"],
+        description: "可选按日(day)或按月(month)分组，默认 none"
+      }
+    }
+  }
+};
+
+async function executeReadonlyTool(
   db: Database.Database,
+  masterKey: Buffer,
   toolName: string,
   args: Record<string, unknown>,
   citationMap: Map<string, QaCitation>
-): { outputJson: string; summary: string } {
+): Promise<{ outputJson: string; summary: string }> {
   if (toolName === "search_entries_fts") {
     const q = String(args.q ?? "").trim();
     const startDate = args.startDate ? String(args.startDate) : undefined;
@@ -354,13 +375,38 @@ function executeReadonlyTool(
     };
   }
 
+  if (toolName === "query_timebook_stats") {
+    const startDate = args.startDate ? String(args.startDate) : undefined;
+    const endDate = args.endDate ? String(args.endDate) : undefined;
+    const keyword = args.keyword ? String(args.keyword) : undefined;
+    const groupBy =
+      args.groupBy === "day" || args.groupBy === "month" ? args.groupBy : "none";
+    const tbRes = await queryTimebookForQa(db, masterKey, {
+      startDate,
+      endDate,
+      keyword,
+      groupBy
+    });
+    if (!tbRes.available) {
+      return {
+        outputJson: JSON.stringify(tbRes),
+        summary: `时间簿查询降级：${tbRes.reason || "服务不可用"}`
+      };
+    }
+    const kwText = keyword ? `「${keyword}」` : "";
+    return {
+      outputJson: JSON.stringify(tbRes),
+      summary: `时间簿查询${kwText}：命中 ${tbRes.sessionCount ?? 0} 次计时，共 ${tbRes.totalHours ?? 0} 小时`
+    };
+  }
+
   return {
     outputJson: JSON.stringify({ error: `禁止或未知的工具调用: ${toolName}` }),
     summary: `拦截未知工具 ${toolName}`
   };
 }
 
-function buildQaSystemPrompt(db: Database.Database): string {
+function buildQaSystemPrompt(db: Database.Database, tbActive: boolean): string {
   const today = getShanghaiNowParts().date;
   const overview = db
     .prepare(
@@ -385,6 +431,11 @@ function buildQaSystemPrompt(db: Database.Database): string {
     "• 涉及篇数、总字数、均字数、最长/最短篇、按年/月变化趋势，或统计特定标签/心情的字数与数量时，优先调用 `aggregate_entry_stats`（善用 tag/mood 过滤与 groupBy）。",
     "• 涉及查找属于某标签、某心情、或按字数排序（如字数最多的几篇/超过某字数）的日记清单时，请调用 `list_entry_digests`（勿把标签名或心情名直接丢进关键词全文检索）。",
     "• 涉及正文具体事件或词语搜索时，调用 `search_entries_fts`；需要核实某一天完整细节时，再调用 `read_entry_full`。",
+    ...(tbActive
+      ? [
+          "• 已开启时间簿只读联动：凡涉及时间投入、花费时长、加班、运动、娱乐、具体某项活动/游戏耗时及待办完成率的问题，调用 `query_timebook_stats`；若用户同时询问期间状态或心情感受，可根据其返回的 `topDays` 高耗时日期再调用 `read_entry_full` 或 `list_entry_digests` 结合日记正文客观作答。"
+        ]
+      : []),
     `严禁编造任何日期或日记细节；每次回答最多允许进行 ${QA_MAX_TOOL_ROUNDS} 轮工具调用，检索充分后请立即停止调工具并给出清晰准确的中文回答。`
   ].join("\n");
 }
@@ -430,7 +481,10 @@ export async function runMemoryQa(
     };
   }
 
-  const systemPrompt = buildQaSystemPrompt(db);
+  const tbCfg = getTimebookConfigFull(db, masterKey);
+  const tbActive = Boolean(tbCfg.enabled && tbCfg.url && tbCfg.password);
+  const activeTools = tbActive ? [...READONLY_QA_TOOLS, TIMEBOOK_QA_TOOL] : READONLY_QA_TOOLS;
+  const systemPrompt = buildQaSystemPrompt(db, tbActive);
 
   const messages: AiConversationMessage[] = [{ role: "user", content: cleanQ }];
   const traces: QaTraceStep[] = [];
@@ -447,7 +501,7 @@ export async function runMemoryQa(
     const res = await callAiCompletion(cfg, {
       system: systemPrompt,
       messages,
-      tools: READONLY_QA_TOOLS,
+      tools: activeTools,
       maxTokens: 1500,
       temperature: 0.2
     });
@@ -470,7 +524,7 @@ export async function runMemoryQa(
 
     for (const tc of res.toolCalls) {
       const t0 = performance.now();
-      const exec = executeReadonlyTool(db, tc.name, tc.args, citationMap);
+      const exec = await executeReadonlyTool(db, masterKey, tc.name, tc.args, citationMap);
       const durationMs = Math.max(1, Math.round(performance.now() - t0));
       traces.push({
         round,
