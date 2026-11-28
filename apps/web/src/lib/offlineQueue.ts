@@ -95,7 +95,8 @@ export async function flushOfflineQueue(): Promise<{
         contentHtml: item.contentHtml,
         tags: item.tags,
         moods: item.moods,
-        createSnapshot: true
+        createSnapshot: true,
+        triggerDigest: false
       });
       syncedCount++;
       syncedEntries.push(saved);

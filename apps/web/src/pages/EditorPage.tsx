@@ -65,6 +65,20 @@ export function EditorPage({
   const latestPayloadRef = useRef({ curId, kind, date, title, contentHtml, selTags, selMoods });
   latestPayloadRef.current = { curId, kind, date, title, contentHtml, selTags, selMoods };
 
+  function clearAutoSaveTimer() {
+    if (saveTimerRef.current !== null) {
+      window.clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = null;
+    }
+  }
+
+  // 组件卸载时清理未触发的防抖定时器，避免离开编辑器后残留触发保存
+  useEffect(() => {
+    return () => {
+      clearAutoSaveTimer();
+    };
+  }, []);
+
   // 加载已有日记或按日期检查当日是否已有日记
   useEffect(() => {
     let cancelled = false;
@@ -171,7 +185,10 @@ export function EditorPage({
     }
   }, [offlineSyncSignal]);
 
-  async function persistNow(createSnapshot: boolean = true): Promise<"synced" | "offline"> {
+  async function persistNow(
+    createSnapshot: boolean = true,
+    triggerDigest: boolean = false
+  ): Promise<"synced" | "offline"> {
     const p = latestPayloadRef.current;
     // 先写本地防丢草稿
     enqueueOfflineDraft({
@@ -201,7 +218,8 @@ export function EditorPage({
         contentHtml: p.contentHtml,
         tags: p.selTags,
         moods: p.selMoods,
-        createSnapshot
+        createSnapshot,
+        triggerDigest
       });
       removeOfflineDraft({ id: p.curId || undefined, kind: p.kind, date: p.date });
       setCurId(saved.id);
@@ -221,9 +239,10 @@ export function EditorPage({
 
   function scheduleAutoSave() {
     setSaveText("编辑中…");
-    if (saveTimerRef.current) window.clearTimeout(saveTimerRef.current);
+    clearAutoSaveTimer();
     saveTimerRef.current = window.setTimeout(() => {
-      void persistNow(true);
+      saveTimerRef.current = null;
+      void persistNow(true, false);
     }, 650);
   }
 
@@ -288,7 +307,8 @@ export function EditorPage({
               className="btn btn-ghost"
               style={{ height: 34, padding: "0 12px" }}
               onClick={() => {
-                void persistNow(true);
+                clearAutoSaveTimer();
+                void persistNow(true, false);
                 onBack();
               }}
             >
@@ -339,10 +359,13 @@ export function EditorPage({
               className="btn btn-primary"
               style={{ height: 34, padding: "0 16px", fontSize: 13, borderRadius: 10 }}
               onClick={() => {
-                void persistNow(true).then((status) =>
+                clearAutoSaveTimer();
+                void persistNow(true, true).then((status) =>
                   onNotify(
                     status === "synced"
-                      ? "已保存至服务器"
+                      ? aiConfig.enabled
+                        ? "已保存至服务器（若内容有更新将在后台生成一次智能概要）"
+                        : "已保存至服务器"
                       : "当前网络不可用，已暂存至本地防丢队列，联网后自动同步"
                   )
                 );

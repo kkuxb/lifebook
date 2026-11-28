@@ -65,6 +65,7 @@ INCLUDE_DOC_FILES = [
     "docs/designs/lifebook-v0.2.0-design.md",
     "docs/designs/lifebook-v0.2.0-implementation-plan.md",
     "docs/designs/lifebook-v0.2.0-test-plan.md",
+    "docs/designs/lifebook-v0.2.1-brief.md",
     "docs/requirements/lifebook-讨论纪要.md",
     "docs/requirements/project-context.md",
 ]

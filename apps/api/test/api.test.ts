@@ -10,7 +10,7 @@ import { initDatabase } from "../src/db/schema.js";
 import { resolveMasterKey } from "../src/crypto.js";
 import { extractJsonFromAiText } from "../src/services/ai-client.js";
 import { upsertEntry } from "../src/services/entries.js";
-import { generateAndCacheEntryDigest } from "../src/services/reviews.js";
+import { computeDigestHash, generateAndCacheEntryDigest } from "../src/services/reviews.js";
 import { clearTimebookCache } from "../src/services/timebook-sync.js";
 
 describe("@lifebook/api 全链路集成测试", () => {
@@ -28,6 +28,8 @@ describe("@lifebook/api 全链路集成测试", () => {
   let lastSeenToolNames: string[] = [];
   let lastSeenQaSystemPrompt = "";
   let flakyDigestAttempt = 0;
+  let digestCallCount = 0;
+  let digestDelayMs = 0;
 
   beforeAll(async () => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "lifebook-api-test-"));
@@ -340,6 +342,10 @@ describe("@lifebook/api 全链路集成测试", () => {
 
         // 单篇结构化日概要
         if (sysMsg.includes("shortTitle")) {
+          digestCallCount += 1;
+          if (digestDelayMs > 0) {
+            await new Promise((r) => setTimeout(r, digestDelayMs));
+          }
           if (mockAiMode === "digest_flaky_json") {
             flakyDigestAttempt++;
             if (flakyDigestAttempt === 1) {
@@ -1074,5 +1080,155 @@ describe("@lifebook/api 全链路集成测试", () => {
     mockTbSchemaMode = "legacy";
     mockAiMode = "normal";
     clearTimebookCache();
+  });
+
+  it("v0.2.1: 默认与 triggerDigest:false 不触发摘要模型调用，仅 triggerDigest:true 触发 1 次且支持同内容跳过与并发去重", async () => {
+    // 确认模型开关处于开启状态并重置计数器
+    const saveAi = await req("/api/settings/ai", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        enabled: true,
+        provider: "openai",
+        baseUrl: `${mockBaseUrl}/openai`,
+        apiKey: "mock-secret-value-123456",
+        modelId: "mock-model"
+      })
+    });
+    expect(saveAi.status).toBe(200);
+
+    mockAiMode = "normal";
+    digestCallCount = 0;
+    digestDelayMs = 0;
+
+    // 1. POST 不传 triggerDigest 与 PUT 显式传 triggerDigest: false -> 0 次模型调用，正文与快照正常落库
+    const postRes = await req("/api/entries", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        kind: "daily",
+        date: "2026-11-28",
+        title: "初冬散步记录",
+        contentHtml: "<p>第一段自动保存内容。</p>",
+        tags: ["日常记录"],
+        moods: ["😌 平静"]
+      })
+    });
+    expect(postRes.status).toBe(200);
+    const created = (await postRes.json()) as { id: string };
+
+    const putFalseRes = await req(`/api/entries/${created.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        kind: "daily",
+        date: "2026-11-28",
+        title: "初冬散步记录",
+        contentHtml: "<p>第一段自动保存内容。</p><p>第二段继续编辑并触发返回兜底保存。</p>",
+        tags: ["日常记录"],
+        moods: ["😌 平静"],
+        triggerDigest: false
+      })
+    });
+    expect(putFalseRes.status).toBe(200);
+
+    await new Promise((r) => setTimeout(r, 120));
+    expect(digestCallCount).toBe(0);
+
+    const entryAfterAuto = (await (await req(`/api/entries/${created.id}`)).json()) as {
+      contentText: string;
+      digest?: unknown;
+    };
+    expect(entryAfterAuto.contentText).toContain("第二段继续编辑");
+    expect(entryAfterAuto.digest ?? null).toBeNull();
+    const snapsAfterAuto = (await (await req(`/api/entries/${created.id}/snapshots`)).json()) as {
+      items: unknown[];
+    };
+    expect(snapsAfterAuto.items.length).toBeGreaterThanOrEqual(2);
+
+    // 2. PUT 显式传 triggerDigest: true -> 立刻返回成功，后台精确产生 1 次模型调用并落库摘要
+    const putTrueRes = await req(`/api/entries/${created.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        kind: "daily",
+        date: "2026-11-28",
+        title: "初冬散步记录",
+        contentHtml: "<p>第一段自动保存内容。</p><p>第二段继续编辑并触发返回兜底保存。</p>",
+        tags: ["日常记录"],
+        moods: ["😌 平静"],
+        triggerDigest: true
+      })
+    });
+    expect(putTrueRes.status).toBe(200);
+
+    let entryWithDigest: { digest?: { contentHash: string; summary: string } | null } = {};
+    for (let i = 0; i < 40; i++) {
+      entryWithDigest = (await (await req(`/api/entries/${created.id}`)).json()) as typeof entryWithDigest;
+      if (entryWithDigest.digest?.summary) break;
+      await new Promise((r) => setTimeout(r, 30));
+    }
+    expect(digestCallCount).toBe(1);
+    expect(entryWithDigest.digest?.summary).toBeTruthy();
+
+    // 3. 标题与正文未变化时再次传 triggerDigest: true -> 命中哈希缓存，增量为 0
+    const repeatRes = await req(`/api/entries/${created.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        kind: "daily",
+        date: "2026-11-28",
+        title: "初冬散步记录",
+        contentHtml: "<p>第一段自动保存内容。</p><p>第二段继续编辑并触发返回兜底保存。</p>",
+        tags: ["日常记录"],
+        moods: ["😌 平静"],
+        triggerDigest: true
+      })
+    });
+    expect(repeatRes.status).toBe(200);
+    await new Promise((r) => setTimeout(r, 120));
+    expect(digestCallCount).toBe(1);
+
+    // 4. 修改正文后并发两次 triggerDigest: true（配合短暂模拟延迟）-> 并发去重仅新增 1 次模型调用
+    digestDelayMs = 150;
+    const updatedPayload = {
+      kind: "daily" as const,
+      date: "2026-11-28",
+      title: "初冬散步记录",
+      contentHtml: "<p>更新后的晚间散步与复盘正文，验证并发去重生效。</p>",
+      tags: ["日常记录"],
+      moods: ["😌 平静"],
+      triggerDigest: true
+    };
+    const [c1, c2] = await Promise.all([
+      req(`/api/entries/${created.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedPayload)
+      }),
+      req(`/api/entries/${created.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedPayload)
+      })
+    ]);
+    expect(c1.status).toBe(200);
+    expect(c2.status).toBe(200);
+
+    const expectedHash = computeDigestHash({
+      title: "初冬散步记录",
+      contentText: "更新后的晚间散步与复盘正文，验证并发去重生效。"
+    });
+    let finalEntry: { digest?: { contentHash: string } | null } = {};
+    for (let i = 0; i < 60; i++) {
+      finalEntry = (await (await req(`/api/entries/${created.id}`)).json()) as typeof finalEntry;
+      if (finalEntry.digest?.contentHash === expectedHash) break;
+      await new Promise((r) => setTimeout(r, 30));
+    }
+    await new Promise((r) => setTimeout(r, 120));
+    digestDelayMs = 0;
+
+    expect(finalEntry.digest?.contentHash).toBe(expectedHash);
+    expect(digestCallCount).toBe(2);
   });
 });

@@ -115,6 +115,7 @@ export const api = {
     tags: string[];
     moods: string[];
     createSnapshot?: boolean;
+    triggerDigest?: boolean;
   }) => {
     if (payload.id) {
       return requestJson<EntryRecord>(`/api/entries/${encodeURIComponent(payload.id)}`, {

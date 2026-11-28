@@ -1,11 +1,14 @@
 # 人生簿（Lifebook）项目文档索引
 
 - **项目标识（`slug`）**：`lifebook`
-- **当前阶段**：**`v0.2.0` 已正式验收收口并开源发布（含极简轻量桌面客户端与时间簿全层级跨库问答；开源仓库 `https://github.com/kkuxb/lifebook`）**
-- **下一步**：NAS 端执行 `git pull origin main && docker compose up -d --build` 即可同步升级全部功能，桌面端点击「人生簿 → 刷新当前页面」立即生效。
+- **当前阶段**：**`v0.2.1` 已验收收口（本地基线存档，不推送远端；取消写作自动保存静默调用模型，改为仅点击「立即保存」触发 1 次异步概要生成）**
+- **下一步**：如需同步至家庭服务器，待后续授权推送远端后再在 NAS 端拉取重建容器。
 
 ## 一、版本更新与当前有效文档
 
+- **`v0.2.1` 维护版本（`2026-11-28` 已验收收口，本地提交哈希：`待提交后回填`）**：
+  - [v0.2.1 验收记录](deliveries/lifebook-v0.2.1-acceptance.md) ｜ [v0.2.1-R1 验证报告](deliveries/lifebook-v0.2.1-R1-test-report.md)
+  - [v0.2.1 维护简报（设计 · 实施 · 测试）](designs/lifebook-v0.2.1-brief.md)（依据 `C-25`，含 `V12`～`V14` 隔离验收场景）
 - **二期 `v0.2.0` 正式版本（`2026-11-21` 已验收发布）**：
   - [v0.2.0 验收记录](deliveries/lifebook-v0.2.0-acceptance.md) ｜ [v0.2.0-R1 验证报告](deliveries/lifebook-v0.2.0-R1-test-report.md)
   - [v0.2.0 工程设计方案](designs/lifebook-v0.2.0-design.md)

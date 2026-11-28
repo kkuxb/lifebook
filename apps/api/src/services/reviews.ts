@@ -45,6 +45,8 @@ interface ParsedEntryDigestPayload {
   reflection?: string;
 }
 
+const inFlightDigestTasks = new Map<string, Promise<EntryAiDigest | null>>();
+
 export async function generateAndCacheEntryDigest(
   db: Database.Database,
   masterKey: Buffer,
@@ -65,96 +67,113 @@ export async function generateAndCacheEntryDigest(
     return entry.digest ?? null;
   }
 
-  const prompt = buildSingleEntryDigestPrompt({
-    date: entry.date,
-    kind: entry.kind,
-    title: entry.title,
-    moods: entry.moods,
-    tags: entry.tags,
-    contentText: entry.contentText
-  });
-
-  const retryDelaysMs = [400, 900];
-  let parsed: ParsedEntryDigestPayload | null = null;
-  let lastErr: unknown = null;
-
-  for (let attempt = 1; attempt <= 3; attempt++) {
-    try {
-      const userContent =
-        attempt === 1
-          ? prompt.user
-          : `${prompt.user}\n\n【格式纠错重试】上一次返回的 JSON 存在语法错误，请务必只输出一个完整的合法 JSON 对象：字符串内部勿使用未转义英文双引号 "（请用「」替代），数组项之间务必用英文逗号分隔且末尾不留逗号。`;
-      const res = await callAiCompletion(cfg, {
-        system: prompt.system,
-        messages: [{ role: "user", content: userContent }],
-        maxTokens: SINGLE_DIGEST_MAX_TOKENS,
-        temperature: attempt === 1 ? 0.2 : 0.1
-      });
-      parsed = extractJsonFromAiText<ParsedEntryDigestPayload>(res.contentText);
-      break;
-    } catch (err) {
-      lastErr = err;
-      if (attempt === 3 || isNonRetryableAiError(err)) {
-        throw err;
-      }
-      await new Promise((r) => setTimeout(r, retryDelaysMs[attempt - 1] ?? 600));
+  const taskKey = `${entry.id}:${contentHash}`;
+  if (!force) {
+    const existing = inFlightDigestTasks.get(taskKey);
+    if (existing) {
+      return existing;
     }
   }
 
-  if (!parsed) {
-    throw lastErr instanceof Error ? lastErr : new Error("生成日概要失败");
-  }
+  const task = (async (): Promise<EntryAiDigest | null> => {
+    const prompt = buildSingleEntryDigestPrompt({
+      date: entry.date,
+      kind: entry.kind,
+      title: entry.title,
+      moods: entry.moods,
+      tags: entry.tags,
+      contentText: entry.contentText
+    });
 
-  const now = new Date().toISOString();
-  const digest: EntryAiDigest = {
-    entryId: entry.id,
-    contentHash,
-    shortTitle: (parsed.shortTitle || entry.title || `${entry.date} 日记`).slice(0, 32),
-    summary: parsed.summary || entry.contentText.slice(0, 100),
-    dimLife: parsed.dimLife || "无明显记录",
-    dimWork: parsed.dimWork || "无明显记录",
-    dimLeisure: parsed.dimLeisure || "无明显记录",
-    dimPeopleNotes: parsed.dimPeopleNotes || "无明显记录",
-    keyEvents: Array.isArray(parsed.keyEvents) ? parsed.keyEvents.slice(0, 3) : [],
-    topics: Array.isArray(parsed.topics) ? parsed.topics.slice(0, 6) : [],
-    reflection: parsed.reflection || "",
-    updatedAt: now
-  };
+    const retryDelaysMs = [400, 900];
+    let parsed: ParsedEntryDigestPayload | null = null;
+    let lastErr: unknown = null;
 
-  db.prepare(
-    `INSERT INTO entry_ai_digests (
-       entry_id, content_hash, short_title, summary,
-       dim_life, dim_work, dim_leisure, dim_people_notes,
-       key_events_json, topics_json, reflection, updated_at
-     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-     ON CONFLICT(entry_id) DO UPDATE SET
-       content_hash = excluded.content_hash,
-       short_title = excluded.short_title,
-       summary = excluded.summary,
-       dim_life = excluded.dim_life,
-       dim_work = excluded.dim_work,
-       dim_leisure = excluded.dim_leisure,
-       dim_people_notes = excluded.dim_people_notes,
-       key_events_json = excluded.key_events_json,
-       topics_json = excluded.topics_json,
-       reflection = excluded.reflection,
-       updated_at = excluded.updated_at`
-  ).run(
-    digest.entryId,
-    digest.contentHash,
-    digest.shortTitle,
-    digest.summary,
-    digest.dimLife,
-    digest.dimWork,
-    digest.dimLeisure,
-    digest.dimPeopleNotes,
-    JSON.stringify(digest.keyEvents),
-    JSON.stringify(digest.topics),
-    digest.reflection,
-    now
-  );
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        const userContent =
+          attempt === 1
+            ? prompt.user
+            : `${prompt.user}\n\n【格式纠错重试】上一次返回的 JSON 存在语法错误，请务必只输出一个完整的合法 JSON 对象：字符串内部勿使用未转义英文双引号 "（请用「」替代），数组项之间务必用英文逗号分隔且末尾不留逗号。`;
+        const res = await callAiCompletion(cfg, {
+          system: prompt.system,
+          messages: [{ role: "user", content: userContent }],
+          maxTokens: SINGLE_DIGEST_MAX_TOKENS,
+          temperature: attempt === 1 ? 0.2 : 0.1
+        });
+        parsed = extractJsonFromAiText<ParsedEntryDigestPayload>(res.contentText);
+        break;
+      } catch (err) {
+        lastErr = err;
+        if (attempt === 3 || isNonRetryableAiError(err)) {
+          throw err;
+        }
+        await new Promise((r) => setTimeout(r, retryDelaysMs[attempt - 1] ?? 600));
+      }
+    }
 
-  return digest;
+    if (!parsed) {
+      throw lastErr instanceof Error ? lastErr : new Error("生成日概要失败");
+    }
+
+    const now = new Date().toISOString();
+    const digest: EntryAiDigest = {
+      entryId: entry.id,
+      contentHash,
+      shortTitle: (parsed.shortTitle || entry.title || `${entry.date} 日记`).slice(0, 32),
+      summary: parsed.summary || entry.contentText.slice(0, 100),
+      dimLife: parsed.dimLife || "无明显记录",
+      dimWork: parsed.dimWork || "无明显记录",
+      dimLeisure: parsed.dimLeisure || "无明显记录",
+      dimPeopleNotes: parsed.dimPeopleNotes || "无明显记录",
+      keyEvents: Array.isArray(parsed.keyEvents) ? parsed.keyEvents.slice(0, 3) : [],
+      topics: Array.isArray(parsed.topics) ? parsed.topics.slice(0, 6) : [],
+      reflection: parsed.reflection || "",
+      updatedAt: now
+    };
+
+    db.prepare(
+      `INSERT INTO entry_ai_digests (
+         entry_id, content_hash, short_title, summary,
+         dim_life, dim_work, dim_leisure, dim_people_notes,
+         key_events_json, topics_json, reflection, updated_at
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT(entry_id) DO UPDATE SET
+         content_hash = excluded.content_hash,
+         short_title = excluded.short_title,
+         summary = excluded.summary,
+         dim_life = excluded.dim_life,
+         dim_work = excluded.dim_work,
+         dim_leisure = excluded.dim_leisure,
+         dim_people_notes = excluded.dim_people_notes,
+         key_events_json = excluded.key_events_json,
+         topics_json = excluded.topics_json,
+         reflection = excluded.reflection,
+         updated_at = excluded.updated_at`
+    ).run(
+      digest.entryId,
+      digest.contentHash,
+      digest.shortTitle,
+      digest.summary,
+      digest.dimLife,
+      digest.dimWork,
+      digest.dimLeisure,
+      digest.dimPeopleNotes,
+      JSON.stringify(digest.keyEvents),
+      JSON.stringify(digest.topics),
+      digest.reflection,
+      now
+    );
+
+    return digest;
+  })().finally(() => {
+    if (inFlightDigestTasks.get(taskKey) === task) {
+      inFlightDigestTasks.delete(taskKey);
+    }
+  });
+
+  inFlightDigestTasks.set(taskKey, task);
+  return task;
 }
 
 export interface BatchFailedItem {

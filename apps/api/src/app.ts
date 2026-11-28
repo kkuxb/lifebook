@@ -238,20 +238,25 @@ export function createLifebookApp(options?: {
     contentHtml: z.string().default(""),
     tags: z.array(z.string()).optional(),
     moods: z.array(z.string()).optional(),
-    createSnapshot: z.boolean().optional().default(true)
+    createSnapshot: z.boolean().optional().default(true),
+    triggerDigest: z.boolean().optional().default(false)
   });
 
   app.post("/api/entries", async (c) => {
     const body = upsertEntrySchema.parse(await c.req.json());
     const saved = upsertEntry(db, body);
-    void generateAndCacheEntryDigest(db, masterKey, saved.id, false).catch(() => {});
+    if (body.triggerDigest) {
+      void generateAndCacheEntryDigest(db, masterKey, saved.id, false).catch(() => {});
+    }
     return c.json(saved);
   });
 
   app.put("/api/entries/:id", async (c) => {
     const body = upsertEntrySchema.parse(await c.req.json());
     const saved = upsertEntry(db, { ...body, id: c.req.param("id") });
-    void generateAndCacheEntryDigest(db, masterKey, saved.id, false).catch(() => {});
+    if (body.triggerDigest) {
+      void generateAndCacheEntryDigest(db, masterKey, saved.id, false).catch(() => {});
+    }
     return c.json(saved);
   });
 
